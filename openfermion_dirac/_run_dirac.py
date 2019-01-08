@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-"""Functions to prepare dirac input and run calculations."""
+"""Functions to prepare Dirac input and run calculations."""
 from __future__ import absolute_import
 
 import os
@@ -26,9 +26,11 @@ class ActiveOrbitalsError(Exception):
     pass
 class SpecialBasisError(Exception):
     pass
+class SpeedOfLightError(Exception):
+    pass
 
 def create_geometry_string(geometry):
-    """This function converts MolecularData geometry to psi4 geometry.
+    """This function converts MolecularData geometry to Dirac geometry.
 
     Args:
         geometry: A list of tuples giving the coordinates of each atom.
@@ -61,7 +63,7 @@ def generate_dirac_input(molecule,
                         relativistic,
                         speed_of_light,
                         active):
-    """This function creates and saves a psi4 input file.
+    """This function creates and saves a Dirac input file.
 
     Args:
         molecule: An instance of the MolecularData class.
@@ -90,6 +92,7 @@ def generate_dirac_input(molecule,
      f.write(geo_string)
     f.close()
 
+    # Check if the keywords are well defined
     if active is False:
        pass
     elif not isinstance(active, list):
@@ -106,8 +109,9 @@ def generate_dirac_input(molecule,
     elif (molecule.basis != "special") and (molecule.special_basis is not None):
        raise SpecialBasisError('special_basis was specified without setting basis = "special"')
 
-    # Find the dirac_directory.
-    dirac_directory = os.path.dirname(os.path.realpath(__file__))
+    if speed_of_light is not False and relativistic is False:
+       raise SpeedOfLightError('A given speed of light has been specified without setting relativistic to True')
+
     # Write input file and return handle.
     input_file = molecule.filename + '.inp'
     with open(input_file, 'w') as f:
@@ -198,7 +202,7 @@ def run_dirac(molecule,
              delete_MDCINT=False,
              delete_FCIDUMP=False,
              save=False):
-    """This function runs a dirac calculation.
+    """This function runs a Dirac calculation.
 
     Args:
         molecule: An instance of the MolecularData class.
@@ -211,12 +215,12 @@ def run_dirac(molecule,
                 first number : lowest energy
                 second number : highest energy
                 third number : minimum gap required between the lowest (highest)
-        delete_input: Optional boolean to delete dirac input file.
-        delete_output: Optional boolean to delete dirac output file.
-        delete_xyz: Optional boolean to delete dirac xyz file.
-        delete_MRCONEE: Optional boolean to delete dirac MRCONEE file.
-        delete_MDCINT: Optional boolean to delete dirac MDCINT file.
-        delete_FCIDUMP: Optional boolean to delete dirac FCIDUMP file.
+        delete_input: Optional boolean to delete Dirac input file.
+        delete_output: Optional boolean to delete Dirac output file.
+        delete_xyz: Optional boolean to delete Dirac xyz file.
+        delete_MRCONEE: Optional boolean to delete Dirac MRCONEE file.
+        delete_MDCINT: Optional boolean to delete Dirac MDCINT file.
+        delete_FCIDUMP: Optional boolean to delete Dirac FCIDUMP file.
 
     Returns:
         molecule: The updated MolecularData object.
@@ -235,7 +239,7 @@ def run_dirac(molecule,
         print('Starting Dirac calculation\n')
         subprocess.call('pam --mol=' + xyz_file + ' --inp=' + input_file + ' --get="MRCONEE MDCINT" --silent --noarch > output_script', shell=True)
     except:
-        print('Dirac calculation for {} has failed. Most certainely a problem with pam.'.format(molecule.name))
+        print('Dirac calculation for {} has failed.'.format(molecule.name))
 
     try:
         print('Creation of the FCIDUMP file\n')
