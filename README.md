@@ -8,9 +8,9 @@
 
 # Installation
 
-INSTALL DIRAC: https://gitlab.com/dirac/dirac/blob/master/README.md
+INSTALL DIRAC: http://diracprogram.org/doku.php
 
-INSTALL OPENFERMION : https://github.com/quantumlib/OpenFermion/blob/master/README.rst 
+INSTALL OPENFERMION : https://github.com/quantumlib/OpenFermion
 
 INSTALL Openfermion-Dirac interface:
 
