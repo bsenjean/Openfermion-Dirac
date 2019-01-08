@@ -7,12 +7,19 @@ Dirac interfaced with Openfermion
 - all requirements for the aforementioned programs.
 
 INSTALL DIRAC: https://gitlab.com/dirac/dirac/blob/master/README.md
+
 INSTALL OPENFERMION : https://github.com/quantumlib/OpenFermion/blob/master/README.rst 
 
+
+
 INSTALL Openfermion-Dirac interface:
+
 $> cd /path/to/Openfermion-Dirac/
+
 $> pip install -e .
+
 $> cd utils/
+
 $> gfortran dirac_openfermion_mointegrals_export.F90 -o dirac_openfermion_mointegrals_export.x
 
 2) Use
