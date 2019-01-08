@@ -12,24 +12,12 @@ INSTALL DIRAC: https://gitlab.com/dirac/dirac/blob/master/README.md
 
 INSTALL OPENFERMION : https://github.com/quantumlib/OpenFermion/blob/master/README.rst 
 
-<<<<<<< HEAD
-Clone the complete repository
+INSTALL Openfermion-Dirac interface:
+
+Clone the complete repository:
 ```
 $ git clone https://github.com/bsenjean/Openfermion-Dirac.git
 ```
-=======
-
-
-INSTALL Openfermion-Dirac interface:
-
-$> cd /path/to/Openfermion-Dirac/
-
-$> pip install -e .
-
-$> cd utils/
-
-$> gfortran dirac_openfermion_mointegrals_export.F90 -o dirac_openfermion_mointegrals_export.x
->>>>>>> 80b5e4b41705a43a384f20967cad222d2a73ff9b
 
 Build the code:
 ```
