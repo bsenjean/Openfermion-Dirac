@@ -1,0 +1,12 @@
+from setuptools import find_packages, setup
+
+setup(name='openfermion_interface',
+      version='0.1',
+      description='OpenFermion/Dirac interface',
+      url='',
+      author='Bruno',
+      author_email='senjean@lorentz.leidenuniv.nl',
+      packages=['openfermion_dirac'],
+      install_requires=["openfermion",
+                        "openfermionpsi4"]
+      )
