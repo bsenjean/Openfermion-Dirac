@@ -352,7 +352,7 @@ class MolecularData_Dirac(object):
         self.get_integrals_FCIDUMP()
         self.molecular_hamiltonian, self.one_body_coeff, self.two_body_coeff = self.get_molecular_hamiltonian()
         self.n_qubits = count_qubits(self.molecular_hamiltonian)
-        self.n_orbitals = len(self.one_body_int)
+        self.n_orbitals = len(self.spinor)
         tmp_name = uuid.uuid4()
         with h5py.File("{}.hdf5".format(tmp_name), "w") as f:
             # Save geometry (atoms and positions need to be separate):

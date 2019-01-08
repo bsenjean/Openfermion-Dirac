@@ -1,32 +1,40 @@
-Dirac interfaced with Openfermion
+#Dirac interfaced with Openfermion
 
-1) Installation
+# Requirements
 
 - Dirac 
 - Openfermion
 - all requirements for the aforementioned programs.
 
+# Installation
+
 INSTALL DIRAC: https://gitlab.com/dirac/dirac/blob/master/README.md
+
 INSTALL OPENFERMION : https://github.com/quantumlib/OpenFermion/blob/master/README.rst 
 
-INSTALL Openfermion-Dirac interface:
-$> cd /path/to/Openfermion-Dirac/
-$> pip install -e .
-$> cd utils/
-$> gfortran dirac_openfermion_mointegrals_export.F90 -o dirac_openfermion_mointegrals_export.x
+Clone the complete repository
+```
+$ git clone https://github.com/bsenjean/Openfermion-Dirac.git
+```
 
-2) Use
+Build the code:
+```
+$ cd /path/to/Openfermion-Dirac/
+$ pip install -e .
+$ cd utils/
+$ gfortran dirac_openfermion_mointegrals_export.F90 -o dirac_openfermion_mointegrals_export.x
+```
 
 In /path/to/Openfermion-Dirac/openfermion_dirac/_run_dirac.py change the following :
 - /path/to/dirac/build/pam to your own path to pam (pam is the run_script of the Dirac program)
 - /path/to/Openfermion-Dirac/utils/dirac_openfermion_mointegrals_export.x
   that constructs the FCIDUMP integral file from the one_body_integrals (MRCONEE) and the two_body_integrals (MDCINT)
 
-3) Examples
+# Examples
 
 Different examples are furnished in the examples/ repository, as well as a tutorial.
 
-4) Known limits and problems
+# Known limits and problems
 
 - From the side of Dirac: 
 Charged systems : sometimes (like HeH+) one cannot run the CCSD calculation with Dirac directly.

@@ -1,11 +1,7 @@
-# Test set up for generating Hamiltonian for H2.
-
 from openfermion_dirac import MolecularData_Dirac, run_dirac
-from openfermion.hamiltonians import MolecularData
-from openfermion.transforms import jordan_wigner, project_onto_sector, bravyi_kitaev
-from openfermion.utils import count_qubits,eigenspectrum
+from openfermion.transforms import jordan_wigner
+from openfermion.utils import eigenspectrum
 import os
-import subprocess
 
 # Set molecule parameters.
 basis = 'sto-3g'
@@ -29,10 +25,10 @@ print('#'*40)
 print()
 run_scf = 1
 if run_scf==1:
- description = 'R' + str(bond_length) + '_scf_dirac'
+ description = 'R' + str(bond_length) + '_scf'
 run_ccsd = 1
 if run_ccsd==1:
- description = 'R' + str(bond_length) + '_ccsd_dirac'
+ description = 'R' + str(bond_length) + '_ccsd'
 
 molecule = MolecularData_Dirac(geometry=geometry,
                                basis=basis,
@@ -51,10 +47,10 @@ molecule = run_dirac(molecule,
                     run_scf=run_scf,
                     run_ccsd=run_ccsd)
 
-fermion_hamiltonian = molecule.get_molecular_hamiltonian()[0]
-qubit_hamiltonian_dirac = jordan_wigner(fermion_hamiltonian)
-evs_dirac = eigenspectrum(qubit_hamiltonian_dirac)
+molecular_hamiltonian = molecule.get_molecular_hamiltonian()[0]
+qubit_hamiltonian = jordan_wigner(molecular_hamiltonian)
+evs = eigenspectrum(qubit_hamiltonian)
 print('Hartree-Fock energy of {} Hartree.'.format(molecule.get_energies()[0]))
 print('MP2 energy of {} Hartree.'.format(molecule.get_energies()[1]))
 print('CCSD energy of {} Hartree.'.format(molecule.get_energies()[2]))
-print('Solving the Qubit Hamiltonian (Jordan-Wigner): \n {}'.format(evs_dirac))
+print('Solving the Qubit Hamiltonian (Jordan-Wigner): \n {}'.format(evs))

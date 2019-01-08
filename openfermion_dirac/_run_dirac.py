@@ -78,7 +78,11 @@ def generate_dirac_input(molecule,
         active: A list of 3 real numbers select active orbitals.
                 first number : lowest energy
                 second number : highest energy
-                third number : minimum gap required between the lowest (highest)
+                third number : minimum gap required between the neighbor energy
+                               of the lowest and highest energy set previously.
+                               If the gap is lower than this number, the lowest
+                               (or highest) energy is shifted down (or up) until
+                               the gap is larger to the third number.
 
     Returns:
         input_file: A string giving the name of the saved input file, and the xyz file.

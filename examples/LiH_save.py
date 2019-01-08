@@ -1,11 +1,7 @@
-# Test set up for generating Hamiltonian for H2.
-
 from openfermion_dirac import MolecularData_Dirac, run_dirac
-from openfermion.hamiltonians import MolecularData
-from openfermion.transforms import jordan_wigner, project_onto_sector, bravyi_kitaev
-from openfermion.utils import count_qubits,eigenspectrum
+from openfermion.transforms import jordan_wigner
+from openfermion.utils import eigenspectrum
 import os
-import subprocess
 
 # Set molecule parameters.
 basis = 'sto-3g'
@@ -30,10 +26,10 @@ print('#'*40)
 print()
 run_scf = 1
 if run_scf==1:
- description = 'R' + str(bond_length) + '_scf_dirac'
+ description = 'R' + str(bond_length) + '_scf'
 run_ccsd = 1
 if run_ccsd==1:
- description = 'R' + str(bond_length) + '_ccsd_dirac'
+ description = 'R' + str(bond_length) + '_ccsd'
 
 molecule = MolecularData_Dirac(geometry=geometry,
                                basis=basis,
@@ -53,7 +49,6 @@ molecule = run_dirac(molecule,
                     run_ccsd=run_ccsd,
                     save=save)
 
-fermion_hamiltonian = molecule.get_molecular_hamiltonian()[0]
 print('Hartree-Fock energy of {} Hartree.'.format(molecule.get_energies()[0]))
 print('MP2 energy of {} Hartree.'.format(molecule.get_energies()[1]))
 print('CCSD energy of {} Hartree.'.format(molecule.get_energies()[2]))

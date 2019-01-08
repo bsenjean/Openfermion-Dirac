@@ -1,12 +1,8 @@
-# Test set up for generating Hamiltonian for H2.
-
 from openfermion_dirac import MolecularData_Dirac, run_dirac
-from openfermion.hamiltonians import MolecularData
-from openfermion.transforms import jordan_wigner, project_onto_sector, bravyi_kitaev
-from openfermion.utils import count_qubits,eigenspectrum
+from openfermion.transforms import jordan_wigner
+from openfermion.utils import eigenspectrum
 from openfermion.ops import InteractionOperator
 import os
-import subprocess
 import sys
 
 # Set molecule parameters.
@@ -24,10 +20,10 @@ print('#'*40)
 print()
 run_scf = 1
 if run_scf==1:
- description = 'R' + str(bond_length) + '_scf_dirac'
+ description = 'R' + str(bond_length) + '_scf'
 run_ccsd = 1
 if run_ccsd==1:
- description = 'R' + str(bond_length) + '_ccsd_dirac'
+ description = 'R' + str(bond_length) + '_ccsd'
 
 molecule = MolecularData_Dirac(geometry=geometry,
                                basis=basis,
@@ -41,7 +37,7 @@ if os.path.exists("{}/{}.hdf5".format(data_directory,molecule.name)) is False:
       print("No file found. You should first run a calculation with save=True (see LiH_save.py")
       sys.exit(0)
 
-print("HDF5 file found, loading from file. Name : {}", format(molecule.get_from_file('name')))
+print("HDF5 file found, loading from file. Name : {}".format(molecule.get_from_file('name')))
 print('Hartree-Fock energy of {} Hartree.'.format(molecule.get_from_file('hf_energy')))
 print('MP2 energy of {} Hartree.'.format(molecule.get_from_file('mp2_energy')))
 print('CCSD energy of {} Hartree.'.format(molecule.get_from_file('ccsd_energy')))
