@@ -35,8 +35,8 @@ Different examples are furnished in the examples/ repository, as well as a tutor
 
 4) Known limits and problems
 
-- From the side of Dirac: 
-Charged systems : sometimes (like HeH+) one cannot run the CCSD calculation with Dirac directly.
+From the side of Dirac: 
+- Charged systems : sometimes (like HeH+) one cannot run the CCSD calculation with Dirac directly.
                   This is most certainely due to the fact that the program does not know how to
                   distribute the remaining electrons to make the reference HF state...
                   It could be fixed by explicitely saying where to distribute the electrons in
@@ -45,10 +45,10 @@ Charged systems : sometimes (like HeH+) one cannot run the CCSD calculation with
                   CCSD does not know what to do with this open shell system, and just considers
                   of 2 electrons instead of 3.
 
-For Beryllium : CCSD calculation does not work.
+- For Beryllium : CCSD calculation does not work.
 
-- From the side of Openfermion:
-Fock space :  The second-quantized Hamiltonian, and so the qubit Hamiltonian,
+From the side of Openfermion:
+- Fock space :  The second-quantized Hamiltonian, and so the qubit Hamiltonian,
               operates in the Fock space. Hence, the ground-state is not
               always the expected one. This is especially true for ionic species, 
               such as HeH+ for instance. One should add an option to constrain charge 
