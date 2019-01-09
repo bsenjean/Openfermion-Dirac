@@ -24,12 +24,12 @@ Build the code:
 $ cd /path/to/Openfermion-Dirac/
 $ pip install -e .
 $ cd utils/
-$ gfortran dirac_openfermion_mointegrals_export.F90 -o dirac_openfermion_mointegrals_export.x
+$ gfortran dirac_openfermion_mointegral_export.F90 -o dirac_openfermion_mointegral_export.x
 ```
 
 In /path/to/Openfermion-Dirac/openfermion_dirac/_run_dirac.py change the following :
 - /path/to/dirac/build/pam to your own path to pam (pam is the run_script of the Dirac program)
-- /path/to/Openfermion-Dirac/utils/dirac_openfermion_mointegrals_export.x
+- /path/to/Openfermion-Dirac/utils/dirac_openfermion_mointegral_export.x
   that constructs the FCIDUMP integral file from the one_body_integrals (MRCONEE) and the two_body_integrals (MDCINT)
 
 # Examples

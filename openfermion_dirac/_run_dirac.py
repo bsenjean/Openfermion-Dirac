@@ -239,19 +239,12 @@ def run_dirac(molecule,
                         active)
 
     # Run Dirac
-    try:
-        print('Starting Dirac calculation\n')
-        subprocess.call('pam --mol=' + xyz_file + ' --inp=' + input_file + ' --get="MRCONEE MDCINT" --silent --noarch > output_script', shell=True)
-    except:
-        print('Dirac calculation for {} has failed.'.format(molecule.name))
+    print('Starting Dirac calculation\n')
+    subprocess.check_call('pam --mol=' + xyz_file + ' --inp=' + input_file + ' --get="MRCONEE MDCINT" --silent --noarch > output_script', shell=True)
 
-    try:
-        print('Creation of the FCIDUMP file\n')
-        subprocess.call('dirac_openfermion_mointegral_export.x >> output_script', shell=True)
-    except:
-        print('Creation of FCIDUMP has failed.')
-    else:
-        clean_up(molecule, delete_input, delete_xyz, delete_output, delete_MRCONEE, delete_MDCINT, delete_FCIDUMP)
+    # run dirac_openfermion_mointegral_export.x
+    print('Creation of the FCIDUMP file\n')
+    subprocess.check_call("dirac_openfermion_mointegral_export.x >> output_script",shell=True)
 
     if save:
      try:
@@ -260,4 +253,7 @@ def run_dirac(molecule,
      except:
         warnings.warn('Error in saving results.',
                       Warning)
+
+    # Clean-up
+    clean_up(molecule, delete_input, delete_xyz, delete_output, delete_MRCONEE, delete_MDCINT, delete_FCIDUMP)
     return molecule
