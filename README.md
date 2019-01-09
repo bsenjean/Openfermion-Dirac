@@ -28,9 +28,10 @@ $ gfortran dirac_openfermion_mointegral_export.F90 -o dirac_openfermion_mointegr
 ```
 
 In /path/to/Openfermion-Dirac/openfermion_dirac/_run_dirac.py change the following :
-- /path/to/dirac/build/pam to your own path to pam (pam is the run_script of the Dirac program)
-- /path/to/Openfermion-Dirac/utils/dirac_openfermion_mointegral_export.x
-  that constructs the FCIDUMP integral file from the one_body_integrals (MRCONEE) and the two_body_integrals (MDCINT)
+- Set your own path to pam (pam is the run_script of the Dirac program), which is called in the subprocess,
+or set directly the /path/to/dirac/build/pam to your bash_profile.
+- Same for dirac_openfermion_mointegral_export.x which is in /path/to/Openfermion-Dirac/utils/, either set
+your own path to it in the subprocess in _run_dirac.py, or set the path to your bash_profile.
 
 # Examples
 
