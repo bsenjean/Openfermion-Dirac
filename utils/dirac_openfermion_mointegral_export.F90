@@ -592,7 +592,7 @@ end module
 
   program make_interface_files
   
-  use dirac_mointegral_export
+  use dirac_openfermion_mointegral_export
 
   call initialize 
   select case (target)
@@ -611,6 +611,7 @@ end module
        write (*,*) ' Writing fcidump interface file ...'
        call write_fcidump_file
        write (*,*) ' fcidump file ready'
+  write(*,*)
   end select
 
   end

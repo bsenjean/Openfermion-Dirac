@@ -6,7 +6,7 @@ import os
 import sys
 
 # Set molecule parameters.
-basis = 'sto-3g'
+basis = 'STO-3G'
 bond_length = 2.0
 multiplicity = 1
 charge = 0
@@ -15,15 +15,10 @@ geometry = [('Li', (0., 0., 0.)), ('H', (0., 0., bond_length))]
 
 print()
 print('#'*40)
-print('NONREL Dirac calculation')
+print('NONREL CCSD loading')
 print('#'*40)
 print()
-run_scf = 1
-if run_scf==1:
- description = 'R' + str(bond_length) + '_scf'
-run_ccsd = 1
-if run_ccsd==1:
- description = 'R' + str(bond_length) + '_ccsd'
+description = 'R' + str(bond_length) + '_ccsd'
 
 molecule = MolecularData_Dirac(geometry=geometry,
                                basis=basis,

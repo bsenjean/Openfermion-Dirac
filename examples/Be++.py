@@ -4,7 +4,7 @@ from openfermion.utils import eigenspectrum
 import os
 
 # Set molecule parameters.
-basis = 'sto-3g'
+basis = 'STO-3G'
 multiplicity = 1
 charge = 2
 data_directory=os.getcwd()
@@ -22,8 +22,12 @@ print('#'*40)
 print('NONREL Dirac calculation')
 print('#'*40)
 print()
-run_ccsd = 1
-description = 'ccsd'
+point_nucleus = True
+run_ccsd = True
+if run_ccsd:
+ description = 'ccsd'
+else:
+ description = 'scf'
 
 molecule = MolecularData_Dirac(geometry=geometry,
                                basis=basis,
@@ -33,6 +37,7 @@ molecule = MolecularData_Dirac(geometry=geometry,
                                data_directory=data_directory)
 
 molecule = run_dirac(molecule,
+                    point_nucleus=point_nucleus,
                     delete_input=delete_input,
                     delete_xyz=delete_xyz,
                     delete_output=delete_output,

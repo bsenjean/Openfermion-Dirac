@@ -4,7 +4,7 @@ from openfermion.utils import eigenspectrum
 import os
 
 # Set molecule parameters.
-basis = 'sto-3g'
+basis = 'STO-3G'
 bond_length = 1.0
 multiplicity = 1
 charge = 0
@@ -18,16 +18,21 @@ delete_MDCINT = True
 delete_FCIDUMP = False
 geometry = [('H', (0., 0., 0.)), ('H', (0., 0., bond_length))]
 
-run_ccsd = 1
-description = 'R' + str(bond_length) + '_ccsd'
-
 speed_of_light = 3.0
+
 print()
 print('#'*60)
 print('REL Dirac calculation with speed of light = ', speed_of_light, ' a.u.')
 print('#'*60)
 print()
+
+run_ccsd = True
+if run_ccsd:
+ description = 'R' + str(bond_length) + '_ccsd'
+else:
+ description = 'R' + str(bond_length) + '_scf'
 relativistic=True
+
 molecule = MolecularData_Dirac(geometry=geometry,
                                basis=basis,
                                multiplicity=multiplicity,

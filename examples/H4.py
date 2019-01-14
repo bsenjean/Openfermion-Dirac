@@ -5,7 +5,7 @@ import numpy as np
 import os
 
 # Set molecule parameters.
-basis = 'sto-3g'
+basis = 'STO-3G'
 R = 2.0
 angle = 10
 angle_rad = angle*np.pi/180.0
@@ -27,8 +27,12 @@ print('#'*40)
 print('NONREL Dirac calculation')
 print('#'*40)
 print()
-run_ccsd = 1
-description = 'R' + str(R) + '_T' + str(angle) +  '_ccsd'
+run_ccsd = True
+point_nucleus = True
+if run_ccsd:
+ description = 'R' + str(R) + '_T' + str(angle) +  '_ccsd'
+else:
+ description = 'R' + str(R) + '_T' + str(angle) +  '_scf'
 
 molecule = MolecularData_Dirac(geometry=geometry,
                                basis=basis,
@@ -38,6 +42,7 @@ molecule = MolecularData_Dirac(geometry=geometry,
                                data_directory=data_directory)
 
 molecule = run_dirac(molecule,
+                    point_nucleus=point_nucleus,
                     delete_input=delete_input,
                     delete_xyz=delete_xyz,
                     delete_output=delete_output,

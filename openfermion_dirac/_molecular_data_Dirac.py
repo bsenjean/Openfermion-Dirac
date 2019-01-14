@@ -201,7 +201,6 @@ def geometry_from_file(file_name):
                 geometry += [(atom, coordinates)]
     return geometry
 
-
 class MolecularData_Dirac(object):
 
     """Attributes:
@@ -444,7 +443,7 @@ class MolecularData_Dirac(object):
         Args:
             property_name: String, Property name to load from self.filename.hdf5
             
-        porperty_name options
+        property_name options
             name : name of the file
             description : description of the calculation (set by user)
             atoms : type of atoms in the molecule

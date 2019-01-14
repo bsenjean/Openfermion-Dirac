@@ -5,7 +5,7 @@ from openfermion.ops import InteractionOperator
 import os
 
 # Set molecule parameters.
-basis = 'sto-3g'
+basis = 'STO-3G'
 bond_length = 1.0
 multiplicity = 1
 charge = 0
@@ -23,9 +23,12 @@ print('#'*40)
 print('NONREL Dirac calculation')
 print('#'*40)
 print()
-run_ccsd = 1
-if run_ccsd==1:
+run_ccsd = True
+point_nucleus = True
+if run_ccsd:
  description = 'R' + str(bond_length) + '_ccsd'
+else:
+ description = 'R' + str(bond_length) + '_scf'
 
 molecule = MolecularData_Dirac(geometry=geometry,
                                basis=basis,
@@ -37,6 +40,7 @@ molecule = MolecularData_Dirac(geometry=geometry,
 if os.path.exists("{}/{}.hdf5".format(data_directory,molecule.name)) is False:
       print("No file found, running Dirac calculation")
       molecule = run_dirac(molecule,
+                    point_nucleus=point_nucleus,
                     delete_input=delete_input,
                     delete_xyz=delete_xyz,
                     delete_output=delete_output,

@@ -59,20 +59,22 @@ def create_geometry_string(geometry):
 
 def generate_dirac_input(molecule,
                         symmetry,
-                        run_scf,
                         run_ccsd,
                         relativistic,
+                        point_nucleus,
                         speed_of_light,
-                        active):
+                        active,
+                        manual_option):
     """This function creates and saves a Dirac input file.
 
     Args:
         molecule: An instance of the MolecularData class.
         symmetry: Boolean to specify the use of symmetry
-        run_scf: Boolean to run SCF calculation.
         run_ccsd: Boolean to run CCSD calculation. (note that SCF and MP2
                   energies are done as well with CCSD)
         relativistic: Boolean to specify relativistic calculation or not
+        point_nucleus : Boolean to specify the use of the nuclear model of point nucleus,
+                        instead of Gaussian charge distribution (default).
         speed_of_light: Real value for the speed of light (137 a.u.) in atomic unit,
                         to be changed if wanted in order to increase or decrease relativistic
                         effects.
@@ -127,9 +129,10 @@ def generate_dirac_input(molecule,
       f.write(".SCF\n")
       if run_ccsd:
        f.write(".RELCCSD\n")
-      if relativistic is False:
+      if not relativistic:
        f.write("**HAMILTONIAN\n")
        f.write(".NONREL\n")
+      if point_nucleus:
        f.write("**INTEGRALS\n")
        f.write(".NUCMOD\n")
        f.write(" 1\n")
@@ -146,7 +149,7 @@ def generate_dirac_input(molecule,
       f.write("*CHARGE\n")
       f.write(".CHARGE\n")
       f.write(" " + str(molecule.charge) + "\n")
-      if symmetry is False:
+      if not symmetry:
        f.write("*SYMMETRY\n")
        f.write(".NOSYM\n")
       f.write("*BASIS\n")
@@ -157,6 +160,8 @@ def generate_dirac_input(molecule,
        f.write(molecule.special_basis[1] + "\n")
       else:
        f.write(molecule.basis + "\n")
+      if manual_option is not False:
+       f.write(manual_option + "\n")
       f.write("*END OF INPUT\n")
     f.close()
 
@@ -199,11 +204,12 @@ def clean_up(molecule, delete_input=True, delete_xyz=True, delete_output=False, 
 
 def run_dirac(molecule,
              symmetry=True,
-             run_scf=True,
              run_ccsd=False,
              relativistic=False,
+             point_nucleus=False,
              speed_of_light=False,
              active=False,
+             manual_option=False,
              delete_input=False,
              delete_output=False,
              delete_xyz=False,
@@ -216,9 +222,10 @@ def run_dirac(molecule,
     Args:
         molecule: An instance of the MolecularData class.
         symmetry: Optional boolean to remove symmetry in the calculation
-        run_scf: Optional boolean to run SCF calculation.
         run_ccsd: Optional boolean to run CCSD calculation.
         relativistic: Optional boolean to run relativistic calculation
+        point_nucleus : Boolean to specify the use of the nuclear model of point nucleus,
+                        instead of Gaussian charge distribution (default).
         speed_of_light: Optional real to give another value to the speed of light
         active: Optional list of 3 real numbers select active orbitals.
                 first number : lowest energy
@@ -237,25 +244,26 @@ def run_dirac(molecule,
     # Prepare input.
     input_file, xyz_file = generate_dirac_input(molecule,
                         symmetry,
-                        run_scf,
                         run_ccsd,
                         relativistic,
+                        point_nucleus,
                         speed_of_light,
-                        active)
+                        active,
+                        manual_option)
 
     # Run Dirac
     print('Starting Dirac calculation\n')
-    subprocess.check_call('pam --mol=' + xyz_file + ' --inp=' + input_file + ' --get="MRCONEE MDCINT" --silent --noarch > output_script', shell=True)
+    subprocess.check_call("pam --mol=" + xyz_file + " --inp=" + input_file + " --get='MRCONEE MDCINT' --silent --noarch", shell=True)
 
     # run dirac_openfermion_mointegral_export.x
-    print('Creation of the FCIDUMP file\n')
-    subprocess.check_call("dirac_openfermion_mointegral_export.x >> output_script",shell=True)
+    print('\nCreation of the FCIDUMP file\n')
+    subprocess.check_call("dirac_openfermion_mointegral_export.x",shell=True)
 
     rename(molecule)
 
     if save:
      try:
-        print("Saving the results")
+        print("\nSaving the results\n")
         molecule.save()
      except:
         warnings.warn('Error in saving results.',

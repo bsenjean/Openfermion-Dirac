@@ -4,7 +4,7 @@ from openfermion.utils import eigenspectrum
 import os
 
 # Set molecule parameters.
-basis = 'sto-3g'
+basis = 'STO-3G'
 bond_length = 0.5
 multiplicity = 1
 charge = 1
@@ -20,31 +20,37 @@ geometry = [('He', (0., 0., 0.)), ('H', (0., 0., bond_length))]
 
 print()
 print('#'*40)
-print('NONREL Dirac calculation')
+print('REL Dirac calculation')
 print('#'*40)
 print()
-run_scf = 1
-if run_scf==1:
- description = 'R' + str(bond_length) + '_scf'
-run_ccsd = 1
-if run_ccsd==1:
+run_ccsd = True
+relativistic = True
+if run_ccsd:
  description = 'R' + str(bond_length) + '_ccsd'
+else:
+ description = 'R' + str(bond_length) + '_scf'
+
+manual_option="""**RELCCSD
+*CCENER
+.NOSDT"""
 
 molecule = MolecularData_Dirac(geometry=geometry,
                                basis=basis,
                                multiplicity=multiplicity,
                                charge=charge,
                                description=description,
+                               relativistic=relativistic,
                                data_directory=data_directory)
 
 molecule = run_dirac(molecule,
+                    manual_option=manual_option,
+                    relativistic=relativistic,
                     delete_input=delete_input,
                     delete_xyz=delete_xyz,
                     delete_output=delete_output,
                     delete_MRCONEE=delete_MRCONEE,
                     delete_MDCINT=delete_MDCINT,
                     delete_FCIDUMP=delete_FCIDUMP,
-                    run_scf=run_scf,
                     run_ccsd=run_ccsd)
 
 molecular_hamiltonian = molecule.get_molecular_hamiltonian()[0]
