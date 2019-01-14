@@ -1,4 +1,4 @@
-# OpenFermion plugin to interface with Psi4.
+# OpenFermion plugin to interface with Dirac.
 # Copyright 2017 The OpenFermion Developers.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-"""Functions to prepare Dirac input and run calculations."""
+"""Functions to prepare Dirac input and run calculations. This program is inspired from _run_psi4.py of the OpenFermion-Psi4 interface."""
 from __future__ import absolute_import
 
 import os
@@ -31,6 +31,7 @@ class SpeedOfLightError(Exception):
 
 def create_geometry_string(geometry):
     """This function converts MolecularData geometry to Dirac geometry.
+       This function is taken from Openfermion-Psi4 interface.
 
     Args:
         geometry: A list of tuples giving the coordinates of each atom.
@@ -161,6 +162,12 @@ def generate_dirac_input(molecule,
 
     return input_file, xyz_file
 
+def rename(molecule):
+    output_file_dirac = molecule.filename + "_" + molecule.name + '.out'
+    output_file = molecule.filename + '.out'
+    os.rename("FCIDUMP", "FCIDUMP_" + molecule.name)
+    os.rename(output_file_dirac,output_file)
+
 def clean_up(molecule, delete_input=True, delete_xyz=True, delete_output=False, delete_MRCONEE=True,
              delete_MDCINT=True, delete_FCIDUMP=False):
     os.remove("FCITABLE")
@@ -168,8 +175,6 @@ def clean_up(molecule, delete_input=True, delete_xyz=True, delete_output=False, 
     xyz_file = molecule.filename + '.xyz'
     output_file_dirac = molecule.filename + "_" + molecule.name + '.out'
     output_file = molecule.filename + '.out'
-    os.rename("FCIDUMP", "FCIDUMP_" + molecule.name)
-    os.rename(output_file_dirac,output_file)
     run_directory = os.getcwd()
     for local_file in os.listdir(run_directory):
         if local_file.endswith('.clean'):
@@ -245,6 +250,8 @@ def run_dirac(molecule,
     # run dirac_openfermion_mointegral_export.x
     print('Creation of the FCIDUMP file\n')
     subprocess.check_call("dirac_openfermion_mointegral_export.x >> output_script",shell=True)
+
+    rename(molecule)
 
     if save:
      try:

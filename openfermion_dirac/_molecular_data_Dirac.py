@@ -10,7 +10,11 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-"""Class and functions to store quantum chemistry data from a Dirac calculation"""
+
+#
+# Note that some part of the code are extracted from the OpenFermion-Psi4 interface
+#
+"""Class and functions to store quantum chemistry data from a Dirac calculation. This program is inspired from _molecule_data.py of OpenFermion."""
 
 import h5py
 import numpy
@@ -98,7 +102,7 @@ def name_molecule(geometry,
                   symmetry,
                   speed_of_light,
                   description):
-    """Function to name molecules.
+    """Function to name molecules. Inspired from _molecule_data.py of OpenFermion.
 
     Args:
         geometry: A list of tuples giving the coordinates of each atom.
@@ -174,7 +178,7 @@ def name_molecule(geometry,
 
 
 def geometry_from_file(file_name):
-    """Function to create molecular geometry from text file.
+    """Function to create molecular geometry from text file. This function is the same as in _molecule_data.py of OpenFermion.
 
     Args:
         file_name: a string giving the location of the geometry file.
@@ -235,7 +239,7 @@ class MolecularData_Dirac(object):
                 An example is [('H', (0, 0, 0)), ('H', (0, 0, 0.7414))].
                 Distances in angstrom. Use atomic symbols to
                 specify atoms. Only optional if loading from file.
-            basis: A string giving the basis set. An example is 'cc-pvtz'.
+            basis: A string giving the basis set. An example is 'cc-pVTZ'.
                 Only optional if loading from file.
             special_basis: A list of two strings giving the default 
                 and special basis set. An example is ["STO-3G","H cc-PVDZ"] 
@@ -339,15 +343,8 @@ class MolecularData_Dirac(object):
         self.two_body_coeff = None
         self.molecular_hamiltonian = None
 
-        # Coupled cluster amplitudes
-        self.ccsd_single_amps = None
-        self.ccsd_double_amps = None
-
-
     def save(self):
         """Method to save the class under a systematic name."""
-        # Create a temporary file and swap it to the original name in case
-        # data needs to be loaded while saving
         self.get_energies()
         self.get_integrals_FCIDUMP()
         self.molecular_hamiltonian, self.one_body_coeff, self.two_body_coeff = self.get_molecular_hamiltonian()
@@ -355,7 +352,7 @@ class MolecularData_Dirac(object):
         self.n_orbitals = len(self.spinor)
         tmp_name = uuid.uuid4()
         with h5py.File("{}.hdf5".format(tmp_name), "w") as f:
-            # Save geometry (atoms and positions need to be separate):
+            # Save geometry:
             d_geom = f.create_group("geometry")
             if not isinstance(self.geometry, basestring):
                 atoms = [numpy.string_(item[0]) for item in self.geometry]
@@ -429,18 +426,6 @@ class MolecularData_Dirac(object):
             f.create_dataset("ccsd_energy",
                              data=(self.ccsd_energy if
                                    self.ccsd_energy is not None else False))
-            f.create_dataset("ccsd_single_amps",
-                             data=(self.ccsd_single_amps
-                                   if self.ccsd_single_amps is not None else
-                                   False),
-                             compression=("gzip" if self.ccsd_single_amps
-                                          is not None else None))
-            f.create_dataset("ccsd_double_amps",
-                             data=(self.ccsd_double_amps
-                                   if self.ccsd_double_amps is
-                                   not None else False),
-                             compression=("gzip" if self.ccsd_double_amps
-                                          is not None else None))
 
         # Remove old file first for compatibility with systems that don't allow
         # rename replacement.  Catching OSError for when file does not exist
@@ -570,7 +555,7 @@ class MolecularData_Dirac(object):
             molecular_hamiltonian: An instance of the MolecularOperator class.
             one_body_coefficients and
             two_body_coefficients, that can be saved easily in order to compute
-            the molecular_hamiltonian without calling Psi4 or Dirac again.
+            the molecular_hamiltonian without Dirac again.
 
         Note:
            OpenFermion requires all integrals, without accounting for permutation symmetry 

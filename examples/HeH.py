@@ -6,8 +6,8 @@ import os
 # Set molecule parameters.
 basis = 'sto-3g'
 bond_length = 0.5
-multiplicity = 1
-charge = 1
+multiplicity = 2
+charge = 0
 data_directory=os.getcwd()
 
 delete_input = True
