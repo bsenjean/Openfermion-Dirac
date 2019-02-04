@@ -55,6 +55,7 @@ def create_geometry_string(geometry):
 
 def generate_dirac_input(molecule,
                         symmetry,
+                        run_dft,
                         run_ccsd,
                         relativistic,
                         point_nucleus,
@@ -125,9 +126,12 @@ def generate_dirac_input(molecule,
       f.write(".SCF\n")
       if run_ccsd:
        f.write(".RELCCSD\n")
+      f.write("**HAMILTONIAN\n")
       if not relativistic:
-       f.write("**HAMILTONIAN\n")
        f.write(".NONREL\n")
+      if run_dft is not False:
+       f.write(".DFT\n")
+       f.write(run_dft + "\n")
       if point_nucleus:
        f.write("**INTEGRALS\n")
        f.write(".NUCMOD\n")
@@ -200,6 +204,7 @@ def clean_up(molecule, delete_input=True, delete_xyz=True, delete_output=False, 
 
 def run_dirac(molecule,
              symmetry=True,
+             run_dft=False,
              run_ccsd=False,
              relativistic=False,
              point_nucleus=False,
@@ -218,6 +223,7 @@ def run_dirac(molecule,
     Args:
         molecule: An instance of the MolecularData class.
         symmetry: Optional boolean to remove symmetry in the calculation
+        run_ccsd: Optional boolean to run DFT calculation.
         run_ccsd: Optional boolean to run CCSD calculation.
         relativistic: Optional boolean to run relativistic calculation
         point_nucleus : Boolean to specify the use of the nuclear model of point nucleus,
@@ -240,6 +246,7 @@ def run_dirac(molecule,
     # Prepare input.
     input_file, xyz_file = generate_dirac_input(molecule,
                         symmetry,
+                        run_dft,
                         run_ccsd,
                         relativistic,
                         point_nucleus,
