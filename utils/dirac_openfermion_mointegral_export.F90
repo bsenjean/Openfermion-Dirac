@@ -272,7 +272,7 @@ contains
 !           if (abs(integral(i,j,1)) > threshold .or. abs(integral(i,j,2)) > threshold) then
            if (abs(integral(i,j,1)) > threshold .or. abs(integral(i,j,2)) > threshold) then
               if (rcw .ne. 1) then
-                 write (filenumber_fcidump,'(1P,2E20.12,6i3)') &
+                 write (filenumber_fcidump,'(1P,2E20.12,7i4)') &
                     integral(i,j,1),                &
                     integral(i,j,2),                &
 !                    i,                              &
@@ -282,7 +282,7 @@ contains
                     0,                              &
                     0
               else
-                 write (filenumber_fcidump,'(1P,E20.12,6i3)') &
+                 write (filenumber_fcidump,'(1P,E20.12,7i4)') &
                     integral(i,j,1),                &
 !                    i,                              &
 !                    j,                              &
@@ -305,7 +305,7 @@ contains
      real(8) :: integral(:)
 
      if ( g_type .ne. 1 ) then
-        write (filenumber,'(1P,2E20.12,4i3)') (integral(g_type*(inz-1)+i), i=1,g_type), &
+        write (filenumber,'(1P,2E20.12,7i4)') (integral(g_type*(inz-1)+i), i=1,g_type), &
 !              kramer_to_spinor(ikr),                  &
 !              kramer_to_spinor(jkr),                  &
 !              kramer_to_spinor(kkr),                  &
@@ -315,7 +315,7 @@ contains
               spinor(kramer_to_spinor(kkr))%index,                  &
               spinor(kramer_to_spinor(lkr))%index
      else
-        write (filenumber,'(1P,E20.12,4i3)') integral(inz), &
+        write (filenumber,'(1P,E20.12,7i4)') integral(inz), &
 !              kramer_to_spinor(ikr),                  &
 !              kramer_to_spinor(jkr),                  &
 !              kramer_to_spinor(kkr),                  &
@@ -569,16 +569,16 @@ contains
 
   do j = 1, number_of_spinors
     if (group_type .ne. 1) then
-        write (filenumber_fcidump,'(1P,2E20.12,4i3)') (spinor(j)%energy),0.0d0,spinor(j)%index,0,0,0
+        write (filenumber_fcidump,'(1P,2E20.12,7i4)') (spinor(j)%energy),0.0d0,spinor(j)%index,0,0,0
     else
-        write (filenumber_fcidump,'(1P,E20.12,4i3)') (spinor(j)%energy),spinor(j)%index,0,0,0
+        write (filenumber_fcidump,'(1P,E20.12,7i4)') (spinor(j)%energy),spinor(j)%index,0,0,0
     end if
   end do
 
   if (group_type .ne. 1) then
-     write (filenumber_fcidump,'(1P,2E20.12,4i3)') core_energy,0.0d0,0,0,0,0
+     write (filenumber_fcidump,'(1P,2E20.12,7i4)') core_energy,0.0d0,0,0,0,0
   else
-     write (filenumber_fcidump,'(1P,E20.12,4i3)') core_energy,0,0,0,0
+     write (filenumber_fcidump,'(1P,E20.12,7i4)') core_energy,0,0,0,0
   end if
 
   deallocate (multiplication_table)

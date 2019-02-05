@@ -4,7 +4,7 @@ from openfermion.utils import eigenspectrum
 import os
 
 # Set molecule parameters.
-basis = 'AUG-CC-pVQZ'
+basis = 'STO-3G'
 bond_length = 3.0
 multiplicity = 1
 charge = 0
