@@ -24,6 +24,8 @@ class SpecialBasisError(Exception):
     pass
 class SpeedOfLightError(Exception):
     pass
+class PropertyError(Exception):
+    pass
 
 def create_geometry_string(geometry):
     """This function converts MolecularData geometry to Dirac geometry.
@@ -61,6 +63,7 @@ def generate_dirac_input(molecule,
                         point_nucleus,
                         speed_of_light,
                         active,
+                        properties,
                         manual_option):
     """This function creates and saves a Dirac input file.
 
@@ -94,7 +97,6 @@ def generate_dirac_input(molecule,
      f.write(str(molecule.n_atoms)+'\n')
      f.write(molecule.filename + ' # anything can be in this line\n')
      f.write(geo_string)
-    f.close()
 
     # Check if the keywords are well defined
     if active is False:
@@ -116,12 +118,17 @@ def generate_dirac_input(molecule,
     if speed_of_light is not False and relativistic is False:
        raise SpeedOfLightError('A given speed of light has been specified without setting relativistic to True')
 
+#    if (not relativistic) and (properties is not False):
+#       raise PropertyError('Properties with relativistic=False not possible. Set it to True and give an large speed of light velocity?')
+
     # Write input file and return handle.
     input_file = molecule.filename + '.inp'
     with open(input_file, 'w') as f:
       f.write("**DIRAC\n")
       f.write(".4INDEX\n")
       f.write(".WAVE FUNCTION\n")
+      if properties is not False:
+       f.write(".PROPERTIES\n")
       f.write("**WAVE FUNCTION\n")
       f.write(".SCF\n")
       if run_ccsd:
@@ -132,6 +139,10 @@ def generate_dirac_input(molecule,
       if run_dft is not False:
        f.write(".DFT\n")
        f.write(run_dft + "\n")
+      if properties is not False:
+       f.write("**PROPERTY\n")
+       for prop in properties:
+        f.write("." + prop + "\n")
       if point_nucleus:
        f.write("**INTEGRALS\n")
        f.write(".NUCMOD\n")
@@ -163,7 +174,6 @@ def generate_dirac_input(molecule,
       if manual_option is not False:
        f.write(manual_option + "\n")
       f.write("*END OF INPUT\n")
-    f.close()
 
     return input_file, xyz_file
 
@@ -210,14 +220,15 @@ def run_dirac(molecule,
              point_nucleus=False,
              speed_of_light=False,
              active=False,
+             save=False,
+             properties=False,
              manual_option=False,
              delete_input=False,
              delete_output=False,
              delete_xyz=False,
              delete_MRCONEE=False,
              delete_MDCINT=False,
-             delete_FCIDUMP=False,
-             save=False):
+             delete_FCIDUMP=False):
     """This function runs a Dirac calculation.
 
     Args:
@@ -252,6 +263,7 @@ def run_dirac(molecule,
                         point_nucleus,
                         speed_of_light,
                         active,
+                        properties,
                         manual_option)
 
     # Run Dirac

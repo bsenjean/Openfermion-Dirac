@@ -525,7 +525,6 @@ class MolecularData_Dirac(object):
                      self.one_body_int[a_1,a_2] = float(listed_values[row][0])
                  else:
                    self.two_body_int[a_1,a_2,a_3,a_4] = float(listed_values[row][0])
-             f.close()
         else:
              raise FileNotFoundError('FCIDUMP not found, first make a run_dirac calculation')
         return self.E_core, self.spinor, self.one_body_int, self.two_body_int
