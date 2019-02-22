@@ -26,6 +26,8 @@ class SpeedOfLightError(Exception):
     pass
 class PropertyError(Exception):
     pass
+class InputError(Exception):
+    pass
 
 def create_geometry_string(geometry):
     """This function converts MolecularData geometry to Dirac geometry.
@@ -60,6 +62,7 @@ def generate_dirac_input(molecule,
                         run_dft,
                         run_ccsd,
                         relativistic,
+                        levyleblond,
                         point_nucleus,
                         speed_of_light,
                         active,
@@ -118,8 +121,8 @@ def generate_dirac_input(molecule,
     if speed_of_light is not False and relativistic is False:
        raise SpeedOfLightError('A given speed of light has been specified without setting relativistic to True')
 
-#    if (not relativistic) and (properties is not False):
-#       raise PropertyError('Properties with relativistic=False not possible. Set it to True and give an large speed of light velocity?')
+    if levyleblond and relativistic:
+       raise InputError("Levy-Leblond is a nonrelativistic Hamiltonian, please set relativistic = False or don't specify Levy-leblond.")
 
     # Write input file and return handle.
     input_file = molecule.filename + '.inp'
@@ -134,8 +137,10 @@ def generate_dirac_input(molecule,
       if run_ccsd:
        f.write(".RELCCSD\n")
       f.write("**HAMILTONIAN\n")
-      if not relativistic:
+      if not relativistic and not levyleblond:
        f.write(".NONREL\n")
+      if not relativistic and levyleblond:
+       f.write(".LEVY-LEBLOND\n")
       if run_dft is not False:
        f.write(".DFT\n")
        f.write(run_dft + "\n")
@@ -217,6 +222,7 @@ def run_dirac(molecule,
              run_dft=False,
              run_ccsd=False,
              relativistic=False,
+             levyleblond=False,
              point_nucleus=False,
              speed_of_light=False,
              active=False,
@@ -260,6 +266,7 @@ def run_dirac(molecule,
                         run_dft,
                         run_ccsd,
                         relativistic,
+                        levyleblond,
                         point_nucleus,
                         speed_of_light,
                         active,

@@ -346,6 +346,9 @@ class MolecularData_Dirac(object):
         """Method to save the class under a systematic name."""
         self.get_energies()
         self.get_integrals_FCIDUMP()
+        self.get_elecdipole()
+        self.get_elecquadrupole()
+        self.get_elecpolarizability()
         self.molecular_hamiltonian, self.one_body_coeff, self.two_body_coeff = self.get_molecular_hamiltonian()
         self.n_qubits = count_qubits(self.molecular_hamiltonian)
         self.n_orbitals = len(self.spinor)
@@ -400,6 +403,15 @@ class MolecularData_Dirac(object):
                                                 else False))
             f.create_dataset("orbital_energies", data=(str(self.spinor) if
                                                 self.spinor is not None
+                                                else False))
+            f.create_dataset("elec_dipole", data=(self.elecdipole if
+                                                self.elecdipole is not None
+                                                else False))
+            f.create_dataset("elec_quadrupole", data=(self.elecquadrupole if
+                                                self.elecquadrupole is not None
+                                                else False))
+            f.create_dataset("elec_polarizability", data=(self.elecpolarizability if
+                                                self.elecpolarizability is not None
                                                 else False))
             # Save attributes generated from integrals.
             f.create_dataset("one_body_integrals", data=(str(self.one_body_int) if
@@ -545,6 +557,59 @@ class MolecularData_Dirac(object):
         else:
            raise FileNotFoundError('output not found, check your run_dirac calculation')
         return self.hf_energy, self.mp2_energy, self.ccsd_energy
+
+    def get_elecdipole(self):
+        self.elecdipole = [None,None,None]
+        if os.path.exists(self.name + '.out') == True:
+           with open(self.name + '.out', "r") as f:
+             for line in f:
+                if re.search("    Dipole length: X :", line):
+                  self.elecdipole[0]=float(line.rsplit()[4])
+                if re.search("    Dipole length: Y :", line):
+                  self.elecdipole[1]=float(line.rsplit()[4])
+                if re.search("    Dipole length: Z :", line):
+                  self.elecdipole[2]=float(line.rsplit()[4])
+        return self.elecdipole
+
+    def get_elecquadrupole(self):
+        self.elecquadrupole = [[None,None,None],[None,None,None],[None,None,None]]
+        if os.path.exists(self.name + '.out') == True:
+           with open(self.name + '.out', "r") as f:
+             for line in f:
+                if re.search("    Quadrupol m.: XX :", line):
+                  self.elecquadrupole[0][0]=float(line.rsplit()[4])
+                if re.search("    Quadrupol m.: XY :", line):
+                  self.elecquadrupole[0][1]=float(line.rsplit()[4])
+                  self.elecquadrupole[1][0]=self.elecquadrupole[0][1]
+                if re.search("    Quadrupol m.: XZ :", line):
+                  self.elecquadrupole[0][2]=float(line.rsplit()[4])
+                  self.elecquadrupole[2][0]=self.elecquadrupole[0][2]
+                if re.search("    Quadrupol m.: YY :", line):
+                  self.elecquadrupole[1][1]=float(line.rsplit()[4])
+                if re.search("    Quadrupol m.: YZ :", line):
+                  self.elecquadrupole[1][2]=float(line.rsplit()[4])
+                  self.elecquadrupole[2][1]=self.elecquadrupole[1][2]
+                if re.search("    Quadrupol m.: ZZ :", line):
+                  self.elecquadrupole[2][2]=float(line.rsplit()[4])
+        return self.elecquadrupole
+
+    def get_elecpolarizability(self):
+        self.elecpolarizability = [None,None,None]
+        if os.path.exists(self.name + '.out') == True:
+           with open(self.name + '.out', "r") as f:
+             for line in f:
+                if re.search("@   xx    ", line):
+                  self.elecpolarizability[0]=float(line.rsplit()[2])
+                  break
+             for line in f:
+                if re.search("@   yy    ", line):
+                  self.elecpolarizability[1]=float(line.rsplit()[2])
+                  break
+             for line in f:
+                if re.search("@   zz    ", line):
+                  self.elecpolarizability[2]=float(line.rsplit()[2])
+                  break
+        return self.elecpolarizability
 
     def get_molecular_hamiltonian(self):
         """Output arrays of the second quantized Hamiltonian coefficients.

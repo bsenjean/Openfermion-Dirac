@@ -6,6 +6,7 @@ setup(name='openfermion_interface',
       url='https://github.com/bsenjean/Openfermion-Dirac',
       author='Bruno',
       author_email='senjean@lorentz.leidenuniv.nl',
+      license='Apache 2',
       packages=['openfermion_dirac'],
       install_requires=["openfermion"]
       )
