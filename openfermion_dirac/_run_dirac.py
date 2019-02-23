@@ -177,9 +177,9 @@ def generate_dirac_input(molecule,
     return input_file, xyz_file
 
 def rename(molecule):
-    output_file_dirac = molecule.filename + "_" + molecule.name + '.out'
+    output_file_dirac = molecule.name + "_" + molecule.name + '.out'
     output_file = molecule.filename + '.out'
-    os.rename("FCIDUMP", "FCIDUMP_" + molecule.name)
+    os.rename("FCIDUMP", molecule.data_directory + "/" + "FCIDUMP_" + molecule.name)
     os.rename(output_file_dirac,output_file)
 
 def clean_up(molecule, delete_input=True, delete_xyz=True, delete_output=False, delete_MRCONEE=True,
@@ -187,9 +187,9 @@ def clean_up(molecule, delete_input=True, delete_xyz=True, delete_output=False, 
     os.remove("FCITABLE")
     input_file = molecule.filename + '.inp'
     xyz_file = molecule.filename + '.xyz'
-    output_file_dirac = molecule.filename + "_" + molecule.name + '.out'
+    output_file_dirac = molecule.name + "_" + molecule.name + '.out'
     output_file = molecule.filename + '.out'
-    run_directory = os.getcwd()
+    run_directory = molecule.data_directory + "/"
     for local_file in os.listdir(run_directory):
         if local_file.endswith('.clean'):
             os.remove(run_directory + '/' + local_file)
@@ -208,7 +208,7 @@ def clean_up(molecule, delete_input=True, delete_xyz=True, delete_output=False, 
     if delete_MDCINT:
         os.remove("MDCINT")
     if delete_FCIDUMP:
-        os.remove("FCIDUMP_" + molecule.name)
+        os.remove(molecule.data_directory + "/" + "FCIDUMP_" + molecule.name)
 
 
 def run_dirac(molecule,

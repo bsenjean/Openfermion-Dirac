@@ -280,6 +280,7 @@ class MolecularData_Dirac(object):
         self.geometry = geometry
         self.basis = basis
         self.multiplicity = multiplicity
+        self.data_directory = data_directory
 
         # Metadata fields with default values.
         self.charge = charge
@@ -300,7 +301,7 @@ class MolecularData_Dirac(object):
             self.filename = filename
         else:
             if data_directory is None:
-                self.filename = DATA_DIRECTORY + '/' + self.name
+                self.filename = os.getcpwd() + '/' + self.name
             else:
                 self.filename = data_directory + '/' + self.name
 
@@ -514,13 +515,13 @@ class MolecularData_Dirac(object):
         return int((self.n_electrons - (self.multiplicity - 1)) // 2)
 
     def get_integrals_FCIDUMP(self):
-        if os.path.exists("FCIDUMP_" + self.name):
+        if os.path.exists(self.data_directory + "/" + "FCIDUMP_" + self.name):
              self.E_core = 0
              self.spinor = {}
              self.one_body_int = {}
              self.two_body_int = {}
-             num_lines = sum(1 for line in open('FCIDUMP_' + self.name))
-             with open("FCIDUMP_" + self.name) as f:
+             num_lines = sum(1 for line in open(self.data_directory + "/" + 'FCIDUMP_' + self.name))
+             with open(self.data_directory + "/" + "FCIDUMP_" + self.name) as f:
                start_reading=0
                for line in f:
                  start_reading+=1
@@ -550,8 +551,8 @@ class MolecularData_Dirac(object):
         self.hf_energy = None
         self.mp2_energy = None
         self.ccsd_energy = None
-        if os.path.exists(self.name + '.out'):
-           with open(self.name + '.out', "r") as f:
+        if os.path.exists(self.filename + '.out'):
+           with open(self.filename + '.out', "r") as f:
              for line in f:
                 if re.search("Total energy                             :", line):
                   self.hf_energy=line.rsplit(None, 1)[-1]
@@ -565,8 +566,8 @@ class MolecularData_Dirac(object):
 
     def get_elecdipole(self):
         self.elecdipole = [None,None,None]
-        if os.path.exists(self.name + '.out'):
-           with open(self.name + '.out', "r") as f:
+        if os.path.exists(self.filename + '.out'):
+           with open(self.filename + '.out', "r") as f:
              for line in f:
                 if re.search("    Dipole length: X :", line):
                   self.elecdipole[0]=float(line.rsplit()[4])
@@ -582,8 +583,8 @@ class MolecularData_Dirac(object):
 
     def get_elecquadrupole(self):
         self.elecquadrupole = [[None,None,None],[None,None,None],[None,None,None]]
-        if os.path.exists(self.name + '.out'):
-           with open(self.name + '.out', "r") as f:
+        if os.path.exists(self.filename + '.out'):
+           with open(self.filename + '.out', "r") as f:
              for line in f:
                 if re.search("    Quadrupol m.: XX :", line):
                   self.elecquadrupole[0][0]=float(line.rsplit()[4])
@@ -608,8 +609,8 @@ class MolecularData_Dirac(object):
 
     def get_elecpolarizability(self):
         self.elecpolarizability = [None,None,None]
-        if os.path.exists(self.name + '.out'):
-           with open(self.name + '.out', "r") as f:
+        if os.path.exists(self.filename + '.out'):
+           with open(self.filename + '.out', "r") as f:
              for line in f:
                 if re.search("@   xx    ", line):
                   self.elecpolarizability[0]=float(line.rsplit()[2])
