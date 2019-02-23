@@ -324,6 +324,9 @@ class MolecularData_Dirac(object):
 
         # Attributes generated from SCF calculation.
         self.hf_energy = None
+        self.elecdipole = None
+        self.elecquadrupole = None
+        self.elecpolarizability = None
         # Orbital energies
         self.spinor = None
 
@@ -349,6 +352,7 @@ class MolecularData_Dirac(object):
         self.get_elecdipole()
         self.get_elecquadrupole()
         self.get_elecpolarizability()
+        print(self.elecdipole, self.elecquadrupole, self.elecpolarizability)
         self.molecular_hamiltonian, self.one_body_coeff, self.two_body_coeff = self.get_molecular_hamiltonian()
         self.n_qubits = count_qubits(self.molecular_hamiltonian)
         self.n_orbitals = len(self.spinor)
@@ -407,6 +411,7 @@ class MolecularData_Dirac(object):
             f.create_dataset("elec_dipole", data=(self.elecdipole if
                                                 self.elecdipole is not None
                                                 else False))
+            print("hey")
             f.create_dataset("elec_quadrupole", data=(self.elecquadrupole if
                                                 self.elecquadrupole is not None
                                                 else False))
@@ -509,7 +514,7 @@ class MolecularData_Dirac(object):
         return int((self.n_electrons - (self.multiplicity - 1)) // 2)
 
     def get_integrals_FCIDUMP(self):
-        if os.path.exists("FCIDUMP_" + self.name) == True:
+        if os.path.exists("FCIDUMP_" + self.name):
              self.E_core = 0
              self.spinor = {}
              self.one_body_int = {}
@@ -545,7 +550,7 @@ class MolecularData_Dirac(object):
         self.hf_energy = None
         self.mp2_energy = None
         self.ccsd_energy = None
-        if os.path.exists(self.name + '.out') == True:
+        if os.path.exists(self.name + '.out'):
            with open(self.name + '.out', "r") as f:
              for line in f:
                 if re.search("Total energy                             :", line):
@@ -560,7 +565,7 @@ class MolecularData_Dirac(object):
 
     def get_elecdipole(self):
         self.elecdipole = [None,None,None]
-        if os.path.exists(self.name + '.out') == True:
+        if os.path.exists(self.name + '.out'):
            with open(self.name + '.out', "r") as f:
              for line in f:
                 if re.search("    Dipole length: X :", line):
@@ -569,11 +574,15 @@ class MolecularData_Dirac(object):
                   self.elecdipole[1]=float(line.rsplit()[4])
                 if re.search("    Dipole length: Z :", line):
                   self.elecdipole[2]=float(line.rsplit()[4])
+           if self.elecdipole == [None,None,None]:
+                self.elecdipole = None
+        else:
+           self.elecdipole = None
         return self.elecdipole
 
     def get_elecquadrupole(self):
         self.elecquadrupole = [[None,None,None],[None,None,None],[None,None,None]]
-        if os.path.exists(self.name + '.out') == True:
+        if os.path.exists(self.name + '.out'):
            with open(self.name + '.out', "r") as f:
              for line in f:
                 if re.search("    Quadrupol m.: XX :", line):
@@ -591,11 +600,15 @@ class MolecularData_Dirac(object):
                   self.elecquadrupole[2][1]=self.elecquadrupole[1][2]
                 if re.search("    Quadrupol m.: ZZ :", line):
                   self.elecquadrupole[2][2]=float(line.rsplit()[4])
+           if self.elecquadrupole == [[None,None,None],[None,None,None],[None,None,None]]:
+                self.elecquadrupole = None
+        else:
+           self.elecquadrupole = None
         return self.elecquadrupole
 
     def get_elecpolarizability(self):
         self.elecpolarizability = [None,None,None]
-        if os.path.exists(self.name + '.out') == True:
+        if os.path.exists(self.name + '.out'):
            with open(self.name + '.out', "r") as f:
              for line in f:
                 if re.search("@   xx    ", line):
@@ -609,6 +622,10 @@ class MolecularData_Dirac(object):
                 if re.search("@   zz    ", line):
                   self.elecpolarizability[2]=float(line.rsplit()[2])
                   break
+           if self.elecpolarizability == [None,None,None]:
+                self.elecpolarizability = None
+        else:
+           self.elecpolarizability = None
         return self.elecpolarizability
 
     def get_molecular_hamiltonian(self):
