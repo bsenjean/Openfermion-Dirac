@@ -62,7 +62,7 @@ def angstroms_to_bohr(distance):
 
 # The Periodic Table as a python list and dictionary.
 periodic_table = [
-    '?',
+    '?','foo',
     'H', 'He',
     'Li', 'Be',
     'B', 'C', 'N', 'O', 'F', 'Ne',
@@ -87,7 +87,7 @@ for atomic_number, atom in enumerate(periodic_table):
     periodic_hash_table[atom] = atomic_number
 
 # Spin polarization of atoms on period table.
-periodic_polarization = [-1,
+periodic_polarization = [-1,-1,
                          1, 0,
                          1, 0, 1, 2, 3, 2, 1, 0,
                          1, 0, 1, 2, 3, 2, 1, 0,

@@ -66,6 +66,7 @@ def generate_dirac_input(molecule,
                         speed_of_light,
                         active,
                         properties,
+                        operator,
                         manual_option):
     """This function creates and saves a Dirac input file.
 
@@ -138,6 +139,11 @@ def generate_dirac_input(molecule,
       if run_dft is not False:
        f.write(".DFT\n")
        f.write(run_dft + "\n")
+      if operator is not False:
+       for i in range(len(operator)):
+        f.write(".OPERATOR\n")
+        for j in range(len(operator[i])):
+         f.write(" " + str(operator[i][j]) + "\n")
       if properties is not False:
        f.write("**PROPERTY\n")
        for prop in properties:
@@ -221,6 +227,7 @@ def run_dirac(molecule,
              active=False,
              save=False,
              properties=False,
+             operator=False,
              manual_option=False,
              delete_input=False,
              delete_output=False,
@@ -263,6 +270,7 @@ def run_dirac(molecule,
                         speed_of_light,
                         active,
                         properties,
+                        operator,
                         manual_option)
 
     # Run Dirac
