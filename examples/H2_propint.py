@@ -15,6 +15,7 @@ delete_xyz = True
 delete_output = False
 delete_MRCONEE = True
 delete_MDCINT = True
+delete_MDPROP = True
 delete_FCIDUMP = False
 # a ghost nuclei "foo" is added to lower the symmetry.
 geometry = [('H', (0., 0., 0.)), ('H', (0., 0., bond_length))]
@@ -32,6 +33,9 @@ if run_ccsd:
 else:
  description = 'R' + str(bond_length) + '_scf'
 
+properties = ['MOLGRD','DIPOLE','QUADRUPOLE','EFG','POLARIZABILITY']
+#properties = False
+
 molecule = MolecularData_Dirac(geometry=geometry,
                                basis=basis,
                                multiplicity=multiplicity,
@@ -41,12 +45,14 @@ molecule = MolecularData_Dirac(geometry=geometry,
 
 molecule = run_dirac(molecule,
                     propint=propint,
+                    properties=properties,
                     point_nucleus=point_nucleus,
                     delete_input=delete_input,
                     delete_xyz=delete_xyz,
                     delete_output=delete_output,
                     delete_MRCONEE=delete_MRCONEE,
                     delete_MDCINT=delete_MDCINT,
+                    delete_MDPROP=delete_MDPROP,
                     delete_FCIDUMP=delete_FCIDUMP,
                     run_ccsd=run_ccsd)
 
@@ -54,11 +60,12 @@ print("spinorbs = ",molecule.get_integrals_FCIDUMP()[1])
 print('Hartree-Fock energy of {} Hartree.'.format(molecule.get_energies()[0]))
 print('MP2 energy of {} Hartree.'.format(molecule.get_energies()[1]))
 print('CCSD energy of {} Hartree.'.format(molecule.get_energies()[2]))
+print('Dipole moment: {}.\n'.format(molecule.get_elecdipole()))
+print('Quadrupole moment: {}.\n'.format(molecule.get_elecquadrupole()))
+print('Polarizability: {}.\n'.format(molecule.get_elecpolarizability()))
 print('property integrals in the AO basis: {}'.format(molecule.get_propint()))
 
 property_hamiltonian = molecule.get_property_hamiltonian()
 qubit_hamiltonian = jordan_wigner(property_hamiltonian)
-evs = eigenspectrum(qubit_hamiltonian)
 print(property_hamiltonian)
 print(qubit_hamiltonian)
-print(evs)

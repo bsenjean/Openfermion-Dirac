@@ -159,10 +159,13 @@ def generate_dirac_input(molecule,
        f.write(" " + str(speed_of_light) + "\n")
       f.write("**MOLTRA\n")
       f.write(".MDCINT\n")
+      f.write(".ACTIVE\n")
       if active is not False:
-       f.write(".ACTIVE\n")
        f.write("energy " + str(active[0]) + " " + str(active[1]) + " " + str(active[2]) + "\n")
+      else:
+       f.write(" all\n")
       if propint is not False:
+       f.write("# need to add a comment here for H2, don't know why\n")
        f.write(".PRPTRA\n")
        f.write("*PRPTRA\n")
        f.write(".OPERATOR\n")
@@ -197,7 +200,7 @@ def rename(molecule,propint):
     os.rename(output_file_dirac,output_file)
 
 def clean_up(molecule, delete_input=True, delete_xyz=True, delete_output=False, delete_MRCONEE=True,
-             delete_MDCINT=True, delete_FCIDUMP=False):
+             delete_MDCINT=True, delete_MDPROP=False, delete_FCIDUMP=False):
     os.remove("FCITABLE")
     input_file = molecule.filename + '.inp'
     xyz_file = molecule.filename + '.xyz'
@@ -221,6 +224,8 @@ def clean_up(molecule, delete_input=True, delete_xyz=True, delete_output=False, 
         os.remove("MRCONEE")
     if delete_MDCINT:
         os.remove("MDCINT")
+    if delete_MDPROP:
+        os.remove("MDPROP")
     if delete_FCIDUMP:
         os.remove(molecule.data_directory + "/" + "FCIDUMP_" + molecule.name)
 
@@ -243,6 +248,7 @@ def run_dirac(molecule,
              delete_xyz=False,
              delete_MRCONEE=False,
              delete_MDCINT=False,
+             delete_MDPROP=False,
              delete_FCIDUMP=False):
     """This function runs a Dirac calculation.
 
@@ -264,6 +270,7 @@ def run_dirac(molecule,
         delete_xyz: Optional boolean to delete Dirac xyz file.
         delete_MRCONEE: Optional boolean to delete Dirac MRCONEE file.
         delete_MDCINT: Optional boolean to delete Dirac MDCINT file.
+        delete_MDPROP: Optional boolean to delete Dirac MDPROP file.
         delete_FCIDUMP: Optional boolean to delete Dirac FCIDUMP file.
 
     Returns:
@@ -309,5 +316,5 @@ def run_dirac(molecule,
                       Warning)
 
     # Clean-up
-    clean_up(molecule, delete_input, delete_xyz, delete_output, delete_MRCONEE, delete_MDCINT, delete_FCIDUMP)
+    clean_up(molecule, delete_input, delete_xyz, delete_output, delete_MRCONEE, delete_MDCINT, delete_MDPROP, delete_FCIDUMP)
     return molecule
