@@ -47,6 +47,7 @@ molecule = run_dirac(molecule,
                     delete_FCIDUMP=delete_FCIDUMP,
                     run_ccsd=run_ccsd)
 
+print("spinorbs = ", molecule.get_integrals_FCIDUMP()[1])
 molecular_hamiltonian = molecule.get_molecular_hamiltonian()[0]
 qubit_hamiltonian = jordan_wigner(molecular_hamiltonian)
 evs = eigenspectrum(qubit_hamiltonian)

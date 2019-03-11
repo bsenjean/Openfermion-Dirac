@@ -5,7 +5,7 @@ import numpy as np
 import os
 
 # Set molecule parameters.
-basis = 'STO-3G'
+basis = 'CC-pVDZ'
 R = 2.0
 angle = 10
 angle_rad = angle*np.pi/180.0
@@ -51,10 +51,11 @@ molecule = run_dirac(molecule,
                     delete_FCIDUMP=delete_FCIDUMP,
                     run_ccsd=run_ccsd)
 
-molecular_hamiltonian = molecule.get_molecular_hamiltonian()[0]
-qubit_hamiltonian = jordan_wigner(molecular_hamiltonian)
-evs = eigenspectrum(qubit_hamiltonian)
+print('Spinorbs = ', molecule.get_integrals_FCIDUMP()[1])
+#molecular_hamiltonian = molecule.get_molecular_hamiltonian()[0]
+#qubit_hamiltonian = jordan_wigner(molecular_hamiltonian)
+#evs = eigenspectrum(qubit_hamiltonian)
 print('Hartree-Fock energy of {} Hartree.'.format(molecule.get_energies()[0]))
 print('MP2 energy of {} Hartree.'.format(molecule.get_energies()[1]))
 print('CCSD energy of {} Hartree.'.format(molecule.get_energies()[2]))
-print('Solving the Qubit Hamiltonian (Jordan-Wigner): \n {}'.format(evs))
+#print('Solving the Qubit Hamiltonian (Jordan-Wigner): \n {}'.format(evs))

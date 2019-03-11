@@ -547,6 +547,28 @@ class MolecularData_Dirac(object):
              raise FileNotFoundError('FCIDUMP not found, first make a run_dirac calculation')
         return self.E_core, self.spinor, self.one_body_int, self.two_body_int
 
+    def get_propint(self):
+        if os.path.exists(self.data_directory + "/" + "PROPINT_" + self.name):
+             core = 0
+             self.propint_AObasis = {}
+             num_lines = sum(1 for line in open(self.data_directory + "/" + 'PROPINT_' + self.name))
+             with open(self.data_directory + "/" + "PROPINT_" + self.name) as f:
+               start_reading=0
+               for line in f:
+                 start_reading+=1
+                 if "NORB" in line:
+                   self.number_spinors = int(re.split(',| ',line)[-2])
+                 if "&END" in line:
+                   break
+               listed_values = [[token for token in line.split()] for line in f.readlines()]
+               for row in range(num_lines-start_reading):
+                 a_1 = int(listed_values[row][2])
+                 a_2 = int(listed_values[row][3])
+                 self.propint_AObasis[a_1,a_2] = complex(float(listed_values[row][0]),float(listed_values[row][1]))
+        else:
+             raise FileNotFoundError('PROPINT not found, first make a run_dirac calculation')
+        return self.propint_AObasis
+
     def get_energies(self):
         self.hf_energy = None
         self.mp2_energy = None
@@ -656,7 +678,7 @@ class MolecularData_Dirac(object):
         """
         # Get active space integrals.
         E_core, spinor, one_body_integrals, two_body_integrals = self.get_integrals_FCIDUMP()
-        n_qubits = len(one_body_integrals)
+        n_qubits = len(spinor)
         # Initialize Hamiltonian coefficients.
         one_body_coefficients = numpy.zeros((n_qubits, n_qubits))
         two_body_coefficients = numpy.zeros((n_qubits, n_qubits,
@@ -712,3 +734,24 @@ class MolecularData_Dirac(object):
             E_core, one_body_coefficients, two_body_coefficients)
 
         return molecular_hamiltonian, one_body_coefficients, two_body_coefficients
+
+
+    def get_property_hamiltonian(self):
+        """Output arrays of the second quantized Hamiltonian coefficients with the properties integrals."""
+        propint_AObasis = self.get_propint()
+        n_qubits = self.number_spinors
+        # Initialize Hamiltonian coefficients.
+        one_body_coeff = numpy.zeros((n_qubits, n_qubits),dtype=complex)
+        two_body_coeff = numpy.zeros((n_qubits, n_qubits,n_qubits,n_qubits),dtype=complex)
+
+        for p in range(n_qubits):
+          for q in range(n_qubits):
+              if (p+1,q+1) in propint_AObasis:
+                 one_body_coeff[p,q] = propint_AObasis[p+1,q+1]
+        # Truncate.
+        one_body_coeff[
+            numpy.absolute(one_body_coeff) < EQ_TOLERANCE] = 0.
+        # Cast to InteractionOperator class and return.
+        property_hamiltonian = InteractionOperator(0., one_body_coeff,two_body_coeff)
+
+        return property_hamiltonian

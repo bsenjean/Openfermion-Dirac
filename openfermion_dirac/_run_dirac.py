@@ -67,6 +67,7 @@ def generate_dirac_input(molecule,
                         active,
                         properties,
                         operator,
+                        propint,
                         manual_option):
     """This function creates and saves a Dirac input file.
 
@@ -161,6 +162,11 @@ def generate_dirac_input(molecule,
       if active is not False:
        f.write(".ACTIVE\n")
        f.write("energy " + str(active[0]) + " " + str(active[1]) + " " + str(active[2]) + "\n")
+      if propint is not False:
+       f.write(".PRPTRA\n")
+       f.write("*PRPTRA\n")
+       f.write(".OPERATOR\n")
+       f.write(" " + propint + "\n")
       f.write("**MOLECULE\n")
       f.write("*CHARGE\n")
       f.write(".CHARGE\n")
@@ -182,10 +188,12 @@ def generate_dirac_input(molecule,
 
     return input_file, xyz_file
 
-def rename(molecule):
+def rename(molecule,propint):
     output_file_dirac = molecule.name + "_" + molecule.name + '.out'
     output_file = molecule.filename + '.out'
     os.rename("FCIDUMP", molecule.data_directory + "/" + "FCIDUMP_" + molecule.name)
+    if propint is not False:
+     os.rename("PROPINT", molecule.data_directory + "/" + "PROPINT_" + molecule.name)
     os.rename(output_file_dirac,output_file)
 
 def clean_up(molecule, delete_input=True, delete_xyz=True, delete_output=False, delete_MRCONEE=True,
@@ -228,6 +236,7 @@ def run_dirac(molecule,
              save=False,
              properties=False,
              operator=False,
+             propint=False,
              manual_option=False,
              delete_input=False,
              delete_output=False,
@@ -271,17 +280,25 @@ def run_dirac(molecule,
                         active,
                         properties,
                         operator,
+                        propint,
                         manual_option)
 
     # Run Dirac
     print('Starting Dirac calculation\n')
-    subprocess.check_call("pam --mol=" + xyz_file + " --inp=" + input_file + " --get='MRCONEE MDCINT' --silent --noarch", shell=True)
+    if propint is not False:
+      subprocess.check_call("pam --mol=" + xyz_file + " --inp=" + input_file + " --get='MRCONEE MDCINT MDPROP' --silent --noarch", shell=True)
+    else:
+      subprocess.check_call("pam --mol=" + xyz_file + " --inp=" + input_file + " --get='MRCONEE MDCINT' --silent --noarch", shell=True)
 
     # run dirac_openfermion_mointegral_export.x
     print('\nCreation of the FCIDUMP file\n')
     subprocess.check_call("dirac_openfermion_mointegral_export.x",shell=True)
+    
+    if propint is not False:
+      print('\nCreation of the PROPINT file\n')
+      subprocess.check_call("dirac_openfermion_propint_export.x",shell=True)
 
-    rename(molecule)
+    rename(molecule,propint)
 
     if save:
      try:
