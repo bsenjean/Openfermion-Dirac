@@ -32,11 +32,12 @@ module dirac_openfermion_mointegral_export
   integer, parameter     :: filenumber_mtable  = 25
   integer, parameter     :: filenumber_55 = 55
   integer, parameter     :: filenumber_56 = 56
+  integer, parameter     :: filenumber_propint = 26
   logical, parameter     :: generate_full_list = .true. ! Bruno : originally set to .false. 
   logical, parameter     :: generate_lower_triangular = .false. ! Bruno : originally set to .true.
 ! The target variable should involve into an input option, for now we have no input since mrcc
 ! is presently the only code that is supported (the interface to nwchem is in an experimental stage)
-  character(10)          :: target = 'fcidump'
+  character(10)          :: target
 ! character(10)          :: target = 'mrcc'
 
   type SpinorInformation
@@ -50,13 +51,17 @@ module dirac_openfermion_mointegral_export
   end type SpinorInformation
 
   integer                 :: number_of_spinors, number_of_electrons, number_of_irreps, number_of_abelian_irreps
-  integer                 :: inversion_symmetry, group_type
+  integer                 :: inversion_symmetry, group_type, inop
   real(8)                 :: core_energy
   real(8)                 :: threshold = 1.0E-16
   integer, allocatable    :: kramer_to_spinor(:)
   integer, allocatable    :: multiplication_table(:,:)
   integer                 :: irrep_occupation(128)
   type(SpinorInformation), allocatable :: spinor(:)
+  character(8)            :: prop_name = 'ZDIPLEN'
+  character(32)           :: ACHAR
+  real(8), allocatable    ::  propr(:,:)
+  real(8), allocatable    ::  propi(:,:)
 
   public initialize, write_mrcc_fort55, write_mrcc_fort56
   private process_1e, process_2e, make_index_to_occupied_first, irrep_reordered
@@ -124,7 +129,7 @@ contains
      end if 
      write (*,*) " Initialized reading from MDCINT"
      write (*,*) " MDCINT created: ",date_of_generation,"  ",time_of_generation
-     
+    
   end subroutine
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -586,6 +591,72 @@ contains
   end subroutine
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  subroutine write_propint_file
+
+      integer               :: i, j
+
+      allocate (propr(number_of_spinors,number_of_spinors))
+      allocate (propi(number_of_spinors,number_of_spinors))
+
+      open (filenumber_propint,FILE='MDPROP',FORM='UNFORMATTED')
+      inop = 0
+    1 read (filenumber_propint,ERR=10,END=11) ACHAR
+      if (ACHAR(1:8).NE.'********'.OR.ACHAR(25:32).NE.prop_name) GOTO 1 !Once ACHAR = prop_name, it continues to read the integrals. 
+      write (*,1000) prop_name,ACHAR(9:16),ACHAR(17:24)
+      read (filenumber_propint) ((propr(i,j),propi(i,j),i=1,number_of_spinors),j=1,number_of_spinors)
+      close (filenumber_propint,STATUS='KEEP')
+      GOTO 12
+   10 INOP = 1
+      GOTO 12
+   11 INOP = 2
+   12 CONTINUE
+
+!
+!     Error exit if the integrals could not be read
+!
+      if (inop.EQ.1) then
+       write (*,*) ' Error reading property ',prop_name,' on file MDPROP'
+       stop ' Error reading property integrals'
+      end if
+      if (inop.EQ.2) then
+       write (*,*) ' Property ',prop_name,' not found on file MDPROP'
+       stop ' Property integrals missing'
+      end if
+ 
+ 1000 format (/' Read integral type ',A8,' created ',  &
+             A8,' storage info : ',A8)
+
+!  deallocate(propr) ; deallocate(propi)
+  
+      open (filenumber_propint, file='PROPINT', Form = 'FORMATTED')
+      write (filenumber_propint,'(A,I5,A)') "&FCI NORB=",number_of_spinors,","
+      write (filenumber_propint,'(A,I5,A)') "    NELEC=",number_of_electrons,","
+      write (filenumber_propint,'(A,30(I2,A))') "    ORBSYM=", &
+      & (spinor(i)%abelian_irrep,",",i=1,number_of_spinors)
+      write (filenumber_propint,'(A,I5,A)') "    ISYM=",(2 * number_of_abelian_irreps),","
+      write (filenumber_propint,'(A)') "    IUHF=1,"
+      write (filenumber_propint,'(A,A)') "   PROP_NAME = ", prop_name
+      write (filenumber_propint,'(A)') "&END"
+
+      do i = 1, number_of_spinors
+         do j = 1, number_of_spinors
+            if (abs(propr(i,j)) > threshold .or. abs(propi(i,j)) > threshold) then
+              write (filenumber_propint,'(1P,2E20.12,7i4)') &
+                 propr(i,j),                &
+                 propi(i,j),                &
+                 i,                              &
+                 j,                              &
+                 0,                              &
+                 0
+            end if
+         end do
+      end do
+    
+      deallocate(propr) ; deallocate(propi)
+
+  end subroutine
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 end module
@@ -594,6 +665,8 @@ end module
   
   use dirac_openfermion_mointegral_export
 
+  call get_command_argument(1, target)
+  write(*,*) target
   call initialize 
   select case (target)
      case ('mrcc')
@@ -611,6 +684,10 @@ end module
        write (*,*) ' Writing fcidump interface file ...'
        call write_fcidump_file
        write (*,*) ' fcidump file ready'
+     case ('propint')
+       write (*,*) ' Writing property integrals file ...'
+       call write_propint_file
+       write (*,*) ' propint file ready'
   write(*,*)
   end select
 

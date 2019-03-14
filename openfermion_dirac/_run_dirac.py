@@ -299,11 +299,11 @@ def run_dirac(molecule,
 
     # run dirac_openfermion_mointegral_export.x
     print('\nCreation of the FCIDUMP file\n')
-    subprocess.check_call("dirac_openfermion_mointegral_export.x",shell=True)
+    subprocess.check_call("dirac_openfermion_mointegral_export.x fcidump",shell=True)
     
     if propint is not False:
       print('\nCreation of the PROPINT file\n')
-      subprocess.check_call("dirac_openfermion_propint_export.x",shell=True)
+      subprocess.check_call("dirac_openfermion_mointegral_export.x propint",shell=True)
 
     rename(molecule,propint)
 

@@ -5,9 +5,9 @@ import numpy as np
 import os
 
 # Set molecule parameters.
-basis = 'CC-pVDZ'
-R = 2.0
-angle = 10
+basis = 'STO-3G'
+R = 1.5
+angle = 60
 angle_rad = angle*np.pi/180.0
 multiplicity = 1
 charge = 0
@@ -52,6 +52,7 @@ molecule = run_dirac(molecule,
                     run_ccsd=run_ccsd)
 
 print('Spinorbs = ', molecule.get_integrals_FCIDUMP()[1])
+print('size spinorbs : {}'.format(len(molecule.get_integrals_FCIDUMP()[1])))
 #molecular_hamiltonian = molecule.get_molecular_hamiltonian()[0]
 #qubit_hamiltonian = jordan_wigner(molecular_hamiltonian)
 #evs = eigenspectrum(qubit_hamiltonian)

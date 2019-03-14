@@ -13,9 +13,9 @@ data_directory=os.getcwd()
 delete_input = True
 delete_xyz = True
 delete_output = False
-delete_MRCONEE = True
-delete_MDCINT = True
-delete_MDPROP = True
+delete_MRCONEE = False
+delete_MDCINT = False
+delete_MDPROP = False
 delete_FCIDUMP = False
 # a ghost nuclei "foo" is added to lower the symmetry.
 geometry = [('H', (0., 0., 0.)), ('H', (0., 0., bond_length))]
@@ -35,6 +35,7 @@ else:
 
 properties = ['MOLGRD','DIPOLE','QUADRUPOLE','EFG','POLARIZABILITY']
 #properties = False
+
 
 molecule = MolecularData_Dirac(geometry=geometry,
                                basis=basis,
