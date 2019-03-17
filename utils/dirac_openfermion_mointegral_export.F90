@@ -644,8 +644,8 @@ contains
               write (filenumber_propint,'(1P,2E20.12,7i4)') &
                  propr(i,j),                &
                  propi(i,j),                &
-                 i,                              &
-                 j,                              &
+                 spinor(i)%index,                              &
+                 spinor(j)%index,                              &
                  0,                              &
                  0
             end if
