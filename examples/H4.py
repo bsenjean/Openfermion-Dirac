@@ -5,7 +5,7 @@ import numpy as np
 import os
 
 # Set molecule parameters.
-basis = 'STO-3G'
+basis = 'CC-pVDZ'
 R = 1.5
 angle = 60
 angle_rad = angle*np.pi/180.0

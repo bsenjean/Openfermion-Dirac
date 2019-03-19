@@ -38,6 +38,7 @@ module dirac_openfermion_mointegral_export
 ! The target variable should involve into an input option, for now we have no input since mrcc
 ! is presently the only code that is supported (the interface to nwchem is in an experimental stage)
   character(10)          :: target
+  character(10)          :: prop_name
 ! character(10)          :: target = 'mrcc'
 
   type SpinorInformation
@@ -58,7 +59,6 @@ module dirac_openfermion_mointegral_export
   integer, allocatable    :: multiplication_table(:,:)
   integer                 :: irrep_occupation(128)
   type(SpinorInformation), allocatable :: spinor(:)
-  character(8)            :: prop_name = 'ZDIPLEN'
   character(32)           :: ACHAR
   real(8), allocatable    ::  propr(:,:)
   real(8), allocatable    ::  propi(:,:)
@@ -666,7 +666,8 @@ end module
   use dirac_openfermion_mointegral_export
 
   call get_command_argument(1, target)
-  write(*,*) target
+  call get_command_argument(2, prop_name)
+  write(*,*) target,prop_name
   call initialize 
   select case (target)
      case ('mrcc')
