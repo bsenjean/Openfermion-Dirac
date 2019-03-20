@@ -64,7 +64,7 @@ print('CCSD energy of {} Hartree.'.format(molecule.get_energies()[2]))
 print('Dipole moment: {}.\n'.format(molecule.get_elecdipole()))
 print('Quadrupole moment: {}.\n'.format(molecule.get_elecquadrupole()))
 print('Polarizability: {}.\n'.format(molecule.get_elecpolarizability()))
-print('property integrals in the AO basis: {}'.format(molecule.get_propint()))
+print('property integrals in the MO basis: {}'.format(molecule.get_propint()))
 
 property_hamiltonian = molecule.get_property_hamiltonian()
 qubit_hamiltonian = jordan_wigner(property_hamiltonian)

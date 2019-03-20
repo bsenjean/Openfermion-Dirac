@@ -159,14 +159,16 @@ def generate_dirac_input(molecule,
        f.write(" " + str(speed_of_light) + "\n")
       f.write("**MOLTRA\n")
       f.write(".MDCINT\n")
+      if propint is not False:
+       f.write(".PRPTRA\n")
       f.write(".ACTIVE\n")
       if active is not False:
        f.write("energy " + str(active[0]) + " " + str(active[1]) + " " + str(active[2]) + "\n")
       else:
        f.write(" all\n")
       if propint is not False:
-       f.write("# need to add a comment here for H2, don't know why\n")
-       f.write(".PRPTRA\n")
+#       f.write("# need to add a comment here for H2, don't know why\n")
+#       f.write(".PRPTRA\n")
        f.write("*PRPTRA\n")
        f.write(".OPERATOR\n")
        f.write(" " + propint + "\n")
