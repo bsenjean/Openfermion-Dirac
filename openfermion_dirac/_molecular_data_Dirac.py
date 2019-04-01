@@ -62,7 +62,7 @@ def angstroms_to_bohr(distance):
 
 # The Periodic Table as a python list and dictionary.
 periodic_table = [
-    '?',
+    'foo',
     'H', 'He',
     'Li', 'Be',
     'B', 'C', 'N', 'O', 'F', 'Ne',
