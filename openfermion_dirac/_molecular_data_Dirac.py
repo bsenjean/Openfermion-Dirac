@@ -353,7 +353,6 @@ class MolecularData_Dirac(object):
         self.get_elecdipole()
         self.get_elecquadrupole()
         self.get_elecpolarizability()
-        print(self.elecdipole, self.elecquadrupole, self.elecpolarizability)
         self.molecular_hamiltonian, self.one_body_coeff, self.two_body_coeff = self.get_molecular_hamiltonian()
         self.n_qubits = count_qubits(self.molecular_hamiltonian)
         self.n_orbitals = len(self.spinor)
@@ -412,7 +411,6 @@ class MolecularData_Dirac(object):
             f.create_dataset("elec_dipole", data=(self.elecdipole if
                                                 self.elecdipole is not None
                                                 else False))
-            print("hey")
             f.create_dataset("elec_quadrupole", data=(self.elecquadrupole if
                                                 self.elecquadrupole is not None
                                                 else False))
