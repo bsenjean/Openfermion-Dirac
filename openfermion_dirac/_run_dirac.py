@@ -201,8 +201,8 @@ def rename(molecule,propint):
      os.rename("PROPINT", molecule.data_directory + "/" + "PROPINT_" + molecule.name)
     os.rename(output_file_dirac,output_file)
 
-def clean_up(molecule, delete_input=True, delete_xyz=True, delete_output=False, delete_MRCONEE=True,
-             delete_MDCINT=True, delete_MDPROP=False, delete_FCIDUMP=False):
+def clean_up(molecule, delete_input, delete_xyz, delete_output, delete_MRCONEE,
+             delete_MDCINT, delete_MDPROP, delete_FCIDUMP):
     os.remove("FCITABLE")
     input_file = molecule.filename + '.inp'
     xyz_file = molecule.filename + '.xyz'
