@@ -15,7 +15,6 @@ delete_xyz = True
 delete_output = False
 delete_MRCONEE = True
 delete_MDCINT = True
-delete_FCIDUMP = False
 geometry = [('Li', (0., 0., 0.)), ('H', (0., 0., bond_length))]
 save = True
 point_nucleus = True
@@ -26,10 +25,7 @@ print('NONREL Dirac calculation')
 print('#'*40)
 print()
 run_ccsd = True
-if run_ccsd:
- description = 'R' + str(bond_length) + '_ccsd'
-else:
- description = 'R' + str(bond_length) + '_scf'
+description = 'R' + str(bond_length) + '_ccsd'
 
 molecule = MolecularData_Dirac(geometry=geometry,
                                basis=basis,
@@ -45,7 +41,6 @@ molecule = run_dirac(molecule,
                     delete_output=delete_output,
                     delete_MRCONEE=delete_MRCONEE,
                     delete_MDCINT=delete_MDCINT,
-                    delete_FCIDUMP=delete_FCIDUMP,
                     run_ccsd=run_ccsd,
                     save=save)
 

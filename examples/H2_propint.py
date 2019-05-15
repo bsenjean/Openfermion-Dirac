@@ -13,10 +13,9 @@ data_directory=os.getcwd()
 delete_input = True
 delete_xyz = True
 delete_output = False
-delete_MRCONEE = False
-delete_MDCINT = False
-delete_MDPROP = False
-delete_FCIDUMP = False
+delete_MRCONEE = True
+delete_MDCINT = True
+delete_MDPROP = True
 # a ghost nuclei "foo" is added to lower the symmetry.
 geometry = [('H', (0., 0., 0.)), ('H', (0., 0., bond_length))]
 propint = "ZDIPLEN"
@@ -45,6 +44,7 @@ molecule = MolecularData_Dirac(geometry=geometry,
                                data_directory=data_directory)
 
 molecule = run_dirac(molecule,
+                    fcidump=True,
                     propint=propint,
                     properties=properties,
                     point_nucleus=point_nucleus,
@@ -54,7 +54,6 @@ molecule = run_dirac(molecule,
                     delete_MRCONEE=delete_MRCONEE,
                     delete_MDCINT=delete_MDCINT,
                     delete_MDPROP=delete_MDPROP,
-                    delete_FCIDUMP=delete_FCIDUMP,
                     run_ccsd=run_ccsd)
 
 print("spinorbs = ",molecule.get_integrals_FCIDUMP()[1])

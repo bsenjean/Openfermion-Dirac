@@ -15,7 +15,7 @@ delete_xyz = True
 delete_output = False
 delete_MRCONEE = True
 delete_MDCINT = True
-delete_FCIDUMP = False
+fcidump = True
 geometry = [('H', (0., 0., 0.)), ('H', (0., 0., bond_length))]
 
 speed_of_light = 3.0
@@ -27,10 +27,7 @@ print('#'*60)
 print()
 
 run_ccsd = True
-if run_ccsd:
- description = 'R' + str(bond_length) + '_ccsd'
-else:
- description = 'R' + str(bond_length) + '_scf'
+description = 'R' + str(bond_length) + '_ccsd'
 relativistic=True
 
 molecule = MolecularData_Dirac(geometry=geometry,
@@ -43,12 +40,12 @@ molecule = MolecularData_Dirac(geometry=geometry,
                                data_directory=data_directory)
 
 molecule = run_dirac(molecule,
+                    fcidump=fcidump,
                     delete_input=delete_input,
                     delete_xyz=delete_xyz,
                     delete_output=delete_output,
                     delete_MRCONEE=delete_MRCONEE,
                     delete_MDCINT=delete_MDCINT,
-                    delete_FCIDUMP=delete_FCIDUMP,
                     run_ccsd=run_ccsd,
                     relativistic=relativistic,
                     speed_of_light=speed_of_light)

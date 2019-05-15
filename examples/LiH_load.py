@@ -29,7 +29,7 @@ molecule = MolecularData_Dirac(geometry=geometry,
 
 
 if os.path.exists("{}/{}.hdf5".format(data_directory,molecule.name)) is False:
-      print("No file found. You should first run a calculation with save=True (see LiH_save.py")
+      print("No file found. You should first run a calculation with save=True (see LiH_save.py)")
       sys.exit(0)
 
 print("HDF5 file found, loading from file. Name : {}".format(molecule.get_from_file('name')))

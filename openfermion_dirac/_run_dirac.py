@@ -28,6 +28,8 @@ class PropertyError(Exception):
     pass
 class InputError(Exception):
     pass
+class InputError(Exception):
+    pass
 
 def create_geometry_string(geometry):
     """This function converts MolecularData geometry to Dirac geometry.
@@ -61,6 +63,7 @@ def generate_dirac_input(molecule,
                         symmetry,
                         run_dft,
                         run_ccsd,
+                        run_fci,
                         relativistic,
                         point_nucleus,
                         speed_of_light,
@@ -76,6 +79,7 @@ def generate_dirac_input(molecule,
         symmetry: Boolean to specify the use of symmetry
         run_ccsd: Boolean to run CCSD calculation. (note that SCF and MP2
                   energies are done as well with CCSD)
+        run_fci: Boolean to run FCI calculation.
         relativistic: Boolean to specify relativistic calculation or not
         point_nucleus : Boolean to specify the use of the nuclear model of point nucleus,
                         instead of Gaussian charge distribution (default).
@@ -122,6 +126,12 @@ def generate_dirac_input(molecule,
     if speed_of_light is not False and relativistic is False:
        raise SpeedOfLightError('A given speed of light has been specified without setting relativistic to True')
 
+    if run_fci:
+       warnings.warn('run_fci is simply implemented to get the FCI ground-state energy for now. Using it to get anything else is highly not recommended.\
+ This option has not been tested meticulously and it might lead to errors depending on the system that you want to treat.',
+                      Warning)
+
+    nelec=int(molecule.n_electrons)
     # Write input file and return handle.
     input_file = molecule.filename + '.inp'
     with open(input_file, 'w') as f:
@@ -134,6 +144,8 @@ def generate_dirac_input(molecule,
       f.write(".SCF\n")
       if run_ccsd:
        f.write(".RELCCSD\n")
+      if run_fci:
+       f.write(".DIRRCI\n")
       f.write("**HAMILTONIAN\n")
       if not relativistic:
        f.write(".LEVY-LEBLOND\n")
@@ -161,6 +173,9 @@ def generate_dirac_input(molecule,
       f.write(".MDCINT\n")
       if propint is not False:
        f.write(".PRPTRA\n")
+      if run_fci:
+       f.write(".SCHEME\n")
+       f.write(" 4\n")
       f.write(".ACTIVE\n")
       if active is not False:
        f.write("energy " + str(active[0]) + " " + str(active[1]) + " " + str(active[2]) + "\n")
@@ -176,7 +191,7 @@ def generate_dirac_input(molecule,
       f.write("*CHARGE\n")
       f.write(".CHARGE\n")
       f.write(" " + str(molecule.charge) + "\n")
-      if not symmetry:
+      if not symmetry or run_fci:
        f.write("*SYMMETRY\n")
        f.write(".NOSYM\n")
       f.write("*BASIS\n")
@@ -190,20 +205,27 @@ def generate_dirac_input(molecule,
       if manual_option is not False:
        f.write(manual_option + "\n")
       f.write("*END OF INPUT\n")
+      if run_fci:
+       if nelec%2==0:
+        f.write("\n &RASORB  NELEC=" + str(nelec) + ", NRAS1=" + str(int(nelec/2)) + "," + str(int(nelec/2)) + ", MAXH1=" + str(nelec) + ", MAXE3=" + str(nelec) + "  &END\n")
+       else:
+        f.write("\n &RASORB  NELEC=" + str(nelec) + ", NRAS1=" + str(int(nelec//2+1)) + "," + str(int(nelec//2)) + ", MAXH1=" + str(nelec) + ", MAXE3=" + str(nelec) + "  &END\n")
+       f.write(" &CIROOT  NROOTS=1 &END\n")
+       f.write(" &DIRECT  MAXITER=20 &END\n")
 
     return input_file, xyz_file
 
-def rename(molecule,propint):
+def rename(molecule,fcidump,propint):
     output_file_dirac = molecule.name + "_" + molecule.name + '.out'
     output_file = molecule.filename + '.out'
-    os.rename("FCIDUMP", molecule.data_directory + "/" + "FCIDUMP_" + molecule.name)
+    if fcidump:
+     os.rename("FCIDUMP", molecule.data_directory + "/" + "FCIDUMP_" + molecule.name)
     if propint is not False:
      os.rename("PROPINT", molecule.data_directory + "/" + "PROPINT_" + molecule.name)
     os.rename(output_file_dirac,output_file)
 
-def clean_up(molecule, delete_input, delete_xyz, delete_output, delete_MRCONEE,
-             delete_MDCINT, delete_MDPROP, delete_FCIDUMP):
-    os.remove("FCITABLE")
+def clean_up(molecule, fcidump, delete_input, delete_xyz, delete_output, delete_MRCONEE,
+             delete_MDCINT, delete_MDPROP):
     input_file = molecule.filename + '.inp'
     xyz_file = molecule.filename + '.xyz'
     output_file_dirac = molecule.name + "_" + molecule.name + '.out'
@@ -228,14 +250,16 @@ def clean_up(molecule, delete_input, delete_xyz, delete_output, delete_MRCONEE,
         os.remove("MDCINT")
     if delete_MDPROP:
         os.remove("MDPROP")
-    if delete_FCIDUMP:
-        os.remove(molecule.data_directory + "/" + "FCIDUMP_" + molecule.name)
+    if fcidump:
+        os.remove("FCITABLE")
 
 
 def run_dirac(molecule,
              symmetry=True,
              run_dft=False,
              run_ccsd=False,
+             run_fci=False,
+             fcidump=False,
              relativistic=False,
              point_nucleus=False,
              speed_of_light=False,
@@ -250,15 +274,19 @@ def run_dirac(molecule,
              delete_xyz=False,
              delete_MRCONEE=False,
              delete_MDCINT=False,
-             delete_MDPROP=False,
-             delete_FCIDUMP=False):
+             delete_MDPROP=False):
     """This function runs a Dirac calculation.
 
     Args:
         molecule: An instance of the MolecularData class.
         symmetry: Optional boolean to remove symmetry in the calculation
-        run_ccsd: Optional boolean to run DFT calculation.
+        run_dft: Optional boolean to run DFT calculation.
         run_ccsd: Optional boolean to run CCSD calculation.
+        run_fci: Optional boolean to run FCI calculation.
+        fcidump: Optional boolean to create the FCIDUMP file containing
+                 all the one- and two-electron integrals.
+                 Necessary to construct the molecular Hamiltonian
+                 in OpenFermion.
         relativistic: Optional boolean to run relativistic calculation
         point_nucleus : Boolean to specify the use of the nuclear model of point nucleus,
                         instead of Gaussian charge distribution (default).
@@ -273,16 +301,19 @@ def run_dirac(molecule,
         delete_MRCONEE: Optional boolean to delete Dirac MRCONEE file.
         delete_MDCINT: Optional boolean to delete Dirac MDCINT file.
         delete_MDPROP: Optional boolean to delete Dirac MDPROP file.
-        delete_FCIDUMP: Optional boolean to delete Dirac FCIDUMP file.
 
     Returns:
         molecule: The updated MolecularData object.
     """
+    if run_fci and fcidump:
+       raise InputError('Both run_fci and fcidump cannot be True. For now, run_fci should just be used to generate the Dirac-output.')
+
     # Prepare input.
     input_file, xyz_file = generate_dirac_input(molecule,
                         symmetry,
                         run_dft,
                         run_ccsd,
+                        run_fci,
                         relativistic,
                         point_nucleus,
                         speed_of_light,
@@ -300,23 +331,24 @@ def run_dirac(molecule,
       subprocess.check_call("pam --mol=" + xyz_file + " --inp=" + input_file + " --get='MRCONEE MDCINT' --silent --noarch", shell=True)
 
     # run dirac_openfermion_mointegral_export.x
-    print('\nCreation of the FCIDUMP file\n')
-    subprocess.check_call("dirac_openfermion_mointegral_export.x fcidump",shell=True)
+    if fcidump:
+      print('\nCreation of the FCIDUMP file\n')
+      subprocess.check_call("dirac_openfermion_mointegral_export.x fcidump",shell=True)
     
     if propint is not False:
       print('\nCreation of the PROPINT file\n')
       subprocess.check_call("dirac_openfermion_mointegral_export.x propint " + str(propint),shell=True)
 
-    rename(molecule,propint)
+    rename(molecule,fcidump,propint)
 
     if save:
      try:
         print("\nSaving the results\n")
         molecule.save()
      except:
-        warnings.warn('Error in saving results.',
-                      Warning)
+        warnings.warn('Error in saving results. Check that fcidump is set to True.',
+                       Warning)
 
     # Clean-up
-    clean_up(molecule, delete_input, delete_xyz, delete_output, delete_MRCONEE, delete_MDCINT, delete_MDPROP, delete_FCIDUMP)
+    clean_up(molecule, fcidump, delete_input, delete_xyz, delete_output, delete_MRCONEE, delete_MDCINT, delete_MDPROP)
     return molecule

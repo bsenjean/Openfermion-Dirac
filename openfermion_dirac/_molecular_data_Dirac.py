@@ -227,6 +227,7 @@ class MolecularData_Dirac(object):
         two_body_integrals: Numpy array of two-electron integrals
         mp2_energy: Energy from MP2 perturbation theory.
         ccsd_energy: Energy from coupled cluster singles + doubles.
+        fci_energy: Energy from full configuration interaction
     """
     def __init__(self, geometry=None, basis=None, special_basis=None, multiplicity=None,
                  charge=0, description="", filename="", data_directory=None, relativistic=False,
@@ -337,6 +338,9 @@ class MolecularData_Dirac(object):
         # Attributes generated from CCSD calculation.
         self.ccsd_energy = None
 
+        # Attributes generated from FCI calculation.
+        self.fci_energy = None
+
         # Electronic Integrals
         # from dirac
         self.one_body_int = None
@@ -441,6 +445,10 @@ class MolecularData_Dirac(object):
             f.create_dataset("ccsd_energy",
                              data=(self.ccsd_energy if
                                    self.ccsd_energy is not None else False))
+            # Save attributes generated from FCI calculation.
+            f.create_dataset("fci_energy",
+                             data=(self.fci_energy if
+                                   self.fci_energy is not None else False))
 
         # Remove old file first for compatibility with systems that don't allow
         # rename replacement.  Catching OSError for when file does not exist
@@ -475,6 +483,7 @@ class MolecularData_Dirac(object):
             hf_energy : Energy Hartree-Fock
             mp2_energy : Energy MP2
             ccsd_energy : Energy CCSD
+            fci_energy : Energy FCI
             nuclear_repulsion : core energy
             orbital_energies : energies of the spin orbitals
             one_body_integrals : One body integrals given by FCIDUMP in Dirac
@@ -542,7 +551,7 @@ class MolecularData_Dirac(object):
                  else:
                    self.two_body_int[a_1,a_2,a_3,a_4] = float(listed_values[row][0])
         else:
-             raise FileNotFoundError('FCIDUMP not found, first make a run_dirac calculation')
+             raise FileNotFoundError('FCIDUMP not found, did you make a run_dirac calculation with set fcidump = True?')
         return self.E_core, self.spinor, self.one_body_int, self.two_body_int
 
     def get_propint(self):
@@ -564,13 +573,14 @@ class MolecularData_Dirac(object):
                  a_2 = int(listed_values[row][3])
                  self.propint_AObasis[a_1,a_2] = complex(float(listed_values[row][0]),float(listed_values[row][1]))
         else:
-             raise FileNotFoundError('PROPINT not found, first make a run_dirac calculation')
+             raise FileNotFoundError('PROPINT not found, did you make a run_dirac calculation and set propint = "property/you/want/to/compute" ?')
         return self.propint_AObasis
 
     def get_energies(self):
         self.hf_energy = None
         self.mp2_energy = None
         self.ccsd_energy = None
+        self.fci_energy = None
         if os.path.exists(self.filename + '.out'):
            with open(self.filename + '.out', "r") as f:
              for line in f:
@@ -580,9 +590,11 @@ class MolecularData_Dirac(object):
                   self.mp2_energy=line.rsplit(None, 1)[-1]
                 if re.search("@ Total CCSD energy", line):
                   self.ccsd_energy=line.rsplit(None, 1)[-1]
+                if re.search("@ CI Total Energy", line):
+                  self.fci_energy=line.rsplit(None, 1)[-1]
         else:
            raise FileNotFoundError('output not found, check your run_dirac calculation')
-        return self.hf_energy, self.mp2_energy, self.ccsd_energy
+        return self.hf_energy, self.mp2_energy, self.ccsd_energy, self.fci_energy
 
     def get_elecdipole(self):
         self.elecdipole = [None,None,None]

@@ -5,7 +5,7 @@ import os
 
 # Set molecule parameters.
 basis = 'STO-3G'
-bond_length = 0.5
+bond_length = 1.0
 multiplicity = 2
 charge = 0
 data_directory=os.getcwd()
@@ -15,19 +15,15 @@ delete_xyz = True
 delete_output = False
 delete_MRCONEE = True
 delete_MDCINT = True
-delete_FCIDUMP = False
 geometry = [('He', (0., 0., 0.)), ('H', (0., 0., bond_length))]
 
 print()
 print('#'*40)
-print('NONREL Dirac calculation')
+print('NONREL CCSD Dirac calculation')
 print('#'*40)
 print()
 run_ccsd = True
-if run_ccsd:
- description = 'R' + str(bond_length) + '_ccsd'
-else:
- description = 'R' + str(bond_length) + '_scf'
+description = 'R' + str(bond_length) + '_ccsd'
 point_nucleus = True
 
 molecule = MolecularData_Dirac(geometry=geometry,
@@ -37,24 +33,30 @@ molecule = MolecularData_Dirac(geometry=geometry,
                                description=description,
                                data_directory=data_directory)
 
-# This has to be set because the CCSD in Dirac will be performed on HeH+ instead of HeH, because of it does not handle open-shell correctly.
-manual_option="**RELCCSD\n*CCENER\n.NOSDT"
-
 molecule = run_dirac(molecule,
+                    fcidump=True,
                     point_nucleus=point_nucleus,
-                    manual_option=manual_option,
                     delete_input=delete_input,
                     delete_xyz=delete_xyz,
                     delete_output=delete_output,
                     delete_MRCONEE=delete_MRCONEE,
                     delete_MDCINT=delete_MDCINT,
-                    delete_FCIDUMP=delete_FCIDUMP,
                     run_ccsd=run_ccsd)
 
 molecular_hamiltonian = molecule.get_molecular_hamiltonian()[0]
 qubit_hamiltonian = jordan_wigner(molecular_hamiltonian)
 evs = eigenspectrum(qubit_hamiltonian)
 print('Hartree-Fock energy of {} Hartree.'.format(molecule.get_energies()[0]))
-print('MP2 energy of {} Hartree.'.format(molecule.get_energies()[1]))
-print('CCSD energy of {} Hartree.'.format(molecule.get_energies()[2]))
+print('MP2 energy of {} Hartree. (WRONG --> HeH+)'.format(molecule.get_energies()[1]))
+print('CCSD energy of {} Hartree. (WRONG --> HeH+)'.format(molecule.get_energies()[2]))
 print('Solving the Qubit Hamiltonian (Jordan-Wigner): \n {}'.format(evs))
+
+print("The FCI calculation doesn't work here...")
+#molecule = run_dirac(molecule,
+#                    point_nucleus=point_nucleus,
+#                    delete_input=delete_input,
+#                    delete_xyz=delete_xyz,
+#                    delete_output=delete_output,
+#                    delete_MRCONEE=delete_MRCONEE,
+#                    delete_MDCINT=delete_MDCINT,
+#                    run_fci=True)

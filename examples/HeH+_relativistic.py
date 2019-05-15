@@ -5,7 +5,7 @@ import os
 
 # Set molecule parameters.
 basis = 'STO-3G'
-bond_length = 0.5
+bond_length = 1
 multiplicity = 1
 charge = 1
 data_directory=os.getcwd()
@@ -15,24 +15,21 @@ delete_xyz = True
 delete_output = False
 delete_MRCONEE = True
 delete_MDCINT = True
-delete_FCIDUMP = False
 geometry = [('He', (0., 0., 0.)), ('H', (0., 0., bond_length))]
 
 print()
 print('#'*40)
-print('REL Dirac calculation')
+print('REL CCSD Dirac calculation')
 print('#'*40)
 print()
 run_ccsd = True
 relativistic = True
-if run_ccsd:
- description = 'R' + str(bond_length) + '_ccsd'
-else:
- description = 'R' + str(bond_length) + '_scf'
+description = 'R' + str(bond_length) + '_ccsd'
 
-manual_option="""**RELCCSD
-*CCENER
-.NOSDT"""
+# This manual option is not necessary anymore and has been fixed since then.
+#manual_option="""**RELCCSD
+#*CCENER
+#.NOSDT"""
 
 molecule = MolecularData_Dirac(geometry=geometry,
                                basis=basis,
@@ -43,14 +40,13 @@ molecule = MolecularData_Dirac(geometry=geometry,
                                data_directory=data_directory)
 
 molecule = run_dirac(molecule,
-                    manual_option=manual_option,
+                    fcidump=True,
                     relativistic=relativistic,
                     delete_input=delete_input,
                     delete_xyz=delete_xyz,
                     delete_output=delete_output,
                     delete_MRCONEE=delete_MRCONEE,
                     delete_MDCINT=delete_MDCINT,
-                    delete_FCIDUMP=delete_FCIDUMP,
                     run_ccsd=run_ccsd)
 
 molecular_hamiltonian = molecule.get_molecular_hamiltonian()[0]
@@ -60,3 +56,31 @@ print('Hartree-Fock energy of {} Hartree.'.format(molecule.get_energies()[0]))
 print('MP2 energy of {} Hartree.'.format(molecule.get_energies()[1]))
 print('CCSD energy of {} Hartree.'.format(molecule.get_energies()[2]))
 print('Solving the Qubit Hamiltonian (Jordan-Wigner): \n {}'.format(evs))
+
+print()
+print('#'*40)
+print('REL FCI Dirac calculation')
+print('#'*40)
+print()
+run_fci = True
+relativistic = True
+description = 'R' + str(bond_length) + '_fci'
+
+molecule = MolecularData_Dirac(geometry=geometry,
+                               basis=basis,
+                               multiplicity=multiplicity,
+                               charge=charge,
+                               description=description,
+                               relativistic=relativistic,
+                               data_directory=data_directory)
+
+molecule = run_dirac(molecule,
+                    relativistic=relativistic,
+                    delete_input=delete_input,
+                    delete_xyz=delete_xyz,
+                    delete_output=delete_output,
+                    delete_MRCONEE=delete_MRCONEE,
+                    delete_MDCINT=delete_MDCINT,
+                    run_fci=run_fci)
+
+print('FCI energy of {} Hartree.'.format(molecule.get_energies()[3]))

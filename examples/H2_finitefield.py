@@ -16,7 +16,6 @@ delete_xyz = True
 delete_output = False
 delete_MRCONEE = True
 delete_MDCINT = True
-delete_FCIDUMP = False
 # a ghost nuclei "foo" is added to lower the symmetry.
 geometry = [('H', (0., 0., 0.)), ('H', (0., 0., bond_length)), ('foo', (0.,0., 10.))]
 operator = [["ZDIPLEN","COMFACTOR",0.001]]#["XDIPLEN","COMFACTOR",0.0],["YDIPLEN","COMFACTOR",0.0]]
@@ -31,10 +30,7 @@ print('#'*40)
 print()
 run_ccsd = True
 point_nucleus = True
-if run_ccsd:
- description = 'R' + str(bond_length) + '_ccsd'
-else:
- description = 'R' + str(bond_length) + '_scf'
+description = 'R' + str(bond_length) + '_ccsd'
 
 molecule = MolecularData_Dirac(geometry=geometry,
                                basis=basis,
@@ -45,6 +41,7 @@ molecule = MolecularData_Dirac(geometry=geometry,
                                data_directory=data_directory)
 
 molecule = run_dirac(molecule,
+                    fcidump=True,
                     operator=operator,
                     point_nucleus=point_nucleus,
                     delete_input=delete_input,
@@ -52,7 +49,6 @@ molecule = run_dirac(molecule,
                     delete_output=delete_output,
                     delete_MRCONEE=delete_MRCONEE,
                     delete_MDCINT=delete_MDCINT,
-                    delete_FCIDUMP=delete_FCIDUMP,
                     run_ccsd=run_ccsd)
 
 print("spinorbs = ",molecule.get_integrals_FCIDUMP()[1])
