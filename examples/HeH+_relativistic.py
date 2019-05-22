@@ -1,5 +1,5 @@
 from openfermion_dirac import MolecularData_Dirac, run_dirac
-from openfermion.transforms import jordan_wigner
+from openfermion.transforms import jordan_wigner, get_fermion_operator, symmetry_conserving_bravyi_kitaev
 from openfermion.utils import eigenspectrum
 import os
 
@@ -56,6 +56,13 @@ print('Hartree-Fock energy of {} Hartree.'.format(molecule.get_energies()[0]))
 print('MP2 energy of {} Hartree.'.format(molecule.get_energies()[1]))
 print('CCSD energy of {} Hartree.'.format(molecule.get_energies()[2]))
 print('Solving the Qubit Hamiltonian (Jordan-Wigner): \n {}'.format(evs))
+
+#symmetry_conserving_bravyi_kitaev(fermionicoperator,number_of_active_orbs,number_of_active_elec)
+number_orbs = len(molecule.get_integrals_FCIDUMP()[1])
+fermion_operator = get_fermion_operator(molecular_hamiltonian)
+qubit_hamiltonian = symmetry_conserving_bravyi_kitaev(fermion_operator,number_orbs,2)
+evs = eigenspectrum(qubit_hamiltonian)
+print('Solving the Qubit Hamiltonian (Bravyi-Kitaev) Symmetry conserving: \n {}'.format(evs))
 
 print()
 print('#'*40)
