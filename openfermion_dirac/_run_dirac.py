@@ -94,6 +94,9 @@ def generate_dirac_input(molecule,
                                If the gap is lower than this number, the lowest
                                (or highest) energy is shifted down (or up) until
                                the gap is larger to the third number.
+          of active can also be a string
+          (the first for the starting active orbital and the second for the last active orbital).
+          The program will check if the list has size two or three, depending on the input provided.
 
     Returns:
         input_file: A string giving the name of the saved input file, and the xyz file.
@@ -109,12 +112,8 @@ def generate_dirac_input(molecule,
     # Check if the keywords are well defined
     if active is False:
        pass
-    elif not isinstance(active, list):
-       raise ActiveOrbitalsError('keyword active should be a list')
-    elif len(active) != 3:
-       raise ActiveOrbitalsError('keyword active needs 3 numbers in a list')
-    elif (active[0] >= active[1]):
-       raise ActiveOrbitalsError('the second argument of active should be higher than the first argument')
+    elif not (isinstance(active, list) and (len(active) == 3)) and not isinstance(active, str):
+       raise ActiveOrbitalsError('keyword active should be a list of three real numbers or a string (see tutorial)')
  
     if molecule.basis == "special" and molecule.special_basis is None:
        raise SpecialBasisError('special_basis should be specified')
@@ -178,12 +177,13 @@ def generate_dirac_input(molecule,
        f.write(" 4\n")
       f.write(".ACTIVE\n")
       if active is not False:
-       f.write("energy " + str(active[0]) + " " + str(active[1]) + " " + str(active[2]) + "\n")
+       if isinstance(active,str):
+         f.write(active + "\n")
+       elif isinstance(active,list):
+         f.write("energy " + str(active[0]) + " " + str(active[1]) + " " + str(active[2]) + "\n")
       else:
        f.write(" all\n")
       if propint is not False:
-#       f.write("# need to add a comment here for H2, don't know why\n")
-#       f.write(".PRPTRA\n")
        f.write("*PRPTRA\n")
        f.write(".OPERATOR\n")
        f.write(" " + propint + "\n")
@@ -324,7 +324,6 @@ def run_dirac(molecule,
                         manual_option)
 
     # Run Dirac
-    print('Starting Dirac calculation\n')
     if propint is not False:
       subprocess.check_call("pam --mol=" + xyz_file + " --inp=" + input_file + " --get='MRCONEE MDCINT MDPROP' --silent --noarch", shell=True)
     else:
@@ -332,18 +331,15 @@ def run_dirac(molecule,
 
     # run dirac_openfermion_mointegral_export.x
     if fcidump:
-      print('\nCreation of the FCIDUMP file\n')
       subprocess.check_call("dirac_openfermion_mointegral_export.x fcidump",shell=True)
     
     if propint is not False:
-      print('\nCreation of the PROPINT file\n')
       subprocess.check_call("dirac_openfermion_mointegral_export.x propint " + str(propint),shell=True)
 
     rename(molecule,fcidump,propint)
 
     if save:
      try:
-        print("\nSaving the results\n")
         molecule.save()
      except:
         warnings.warn('Error in saving results. Check that fcidump is set to True.',
