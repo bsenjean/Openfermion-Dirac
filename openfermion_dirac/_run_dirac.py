@@ -71,6 +71,7 @@ def generate_dirac_input(molecule,
                         properties,
                         operator,
                         propint,
+                        fcidump,
                         manual_option):
     """This function creates and saves a Dirac input file.
 
@@ -94,9 +95,13 @@ def generate_dirac_input(molecule,
                                If the gap is lower than this number, the lowest
                                (or highest) energy is shifted down (or up) until
                                the gap is larger to the third number.
-          of active can also be a string
+          or active can also be a string
           (the first for the starting active orbital and the second for the last active orbital).
           The program will check if the list has size two or three, depending on the input provided.
+        properties: list of strings to ask for calculation of specific molecular properties
+        operator: list of list of operators and their prefactor to be added in the Hamiltonian (like external electric field...)
+        propint: Property integrals transformation 
+        fcidump: Boolean if the FCIDUMP file has to be written or not. If not, the MRCONEE and MDCINT files are not needed and one can skip 2- and 4-index transformation.
 
     Returns:
         input_file: A string giving the name of the saved input file, and the xyz file.
@@ -169,7 +174,11 @@ def generate_dirac_input(molecule,
        f.write(".CVALUE\n")
        f.write(" " + str(speed_of_light) + "\n")
       f.write("**MOLTRA\n")
-      f.write(".MDCINT\n")
+      if run_ccsd or fcidump or run_fci:
+        f.write(".MDCINT\n")
+      else:
+        # specifically ask not to skip the 4-index transformation of the effective Fock matrix. Only if fcidump is not True and CCSD and FCI are not performed.
+        f.write(".NO4IND\n")
       if propint is not False:
        f.write(".PRPTRA\n")
       if run_fci:
@@ -230,29 +239,41 @@ def clean_up(molecule, fcidump, delete_input, delete_xyz, delete_output, delete_
     xyz_file = molecule.filename + '.xyz'
     output_file_dirac = molecule.name + "_" + molecule.name + '.out'
     output_file = molecule.filename + '.out'
-    run_directory = molecule.data_directory + "/"
-    for local_file in os.listdir(run_directory):
-        if local_file.endswith('.clean'):
-            os.remove(run_directory + '/' + local_file)
-    try:
-        os.remove('timer.dat')
-    except:
-        pass
     if delete_input:
+      try:
         os.remove(input_file)
+      except:
+        pass
     if delete_output:
+      try:
         os.remove(output_file)
+      except:
+        pass
     if delete_xyz:
+      try:
         os.remove(xyz_file)
+      except:
+        pass
     if delete_MRCONEE:
+      try:
         os.remove("MRCONEE")
+      except:
+        pass
     if delete_MDCINT:
+      try:
         os.remove("MDCINT")
+      except:
+        pass
     if delete_MDPROP:
+      try:
         os.remove("MDPROP")
+      except:
+        pass
     if fcidump:
+      try:
         os.remove("FCITABLE")
-
+      except:
+        pass
 
 def run_dirac(molecule,
              symmetry=True,
@@ -269,6 +290,8 @@ def run_dirac(molecule,
              operator=False,
              propint=False,
              manual_option=False,
+             get=False,
+             restart=False,
              delete_input=False,
              delete_output=False,
              delete_xyz=False,
@@ -291,10 +314,23 @@ def run_dirac(molecule,
         point_nucleus : Boolean to specify the use of the nuclear model of point nucleus,
                         instead of Gaussian charge distribution (default).
         speed_of_light: Optional real to give another value to the speed of light
-        active: Optional list of 3 real numbers select active orbitals.
+        active: A list of 3 real numbers select active orbitals.
                 first number : lowest energy
                 second number : highest energy
-                third number : minimum gap required between the lowest (highest)
+                third number : minimum gap required between the neighbor energy
+                               of the lowest and highest energy set previously.
+                               If the gap is lower than this number, the lowest
+                               (or highest) energy is shifted down (or up) until
+                               the gap is larger to the third number.
+          or active can also be a string
+          (the first for the starting active orbital and the second for the last active orbital).
+          The program will check if the list has size two or three, depending on the input provided.
+        save: Boolean to save calculation in a hdf5 file.
+        properties: list of strings to ask for calculation of specific molecular properties
+        operator: list of list of operators and their prefactor to be added in the Hamiltonian (like external electric field...)
+        propint: Property integrals transformation 
+        get: string to ask specific files from DIRAC, like DFCOEF.
+        restart: restart a calculation with a DFCOEF file (binary file containing all MO coeffs and basis functions)
         delete_input: Optional boolean to delete Dirac input file.
         delete_output: Optional boolean to delete Dirac output file.
         delete_xyz: Optional boolean to delete Dirac xyz file.
@@ -321,13 +357,21 @@ def run_dirac(molecule,
                         properties,
                         operator,
                         propint,
+                        fcidump,
                         manual_option)
 
     # Run Dirac
+    get_all = ""
+    if fcidump:
+       get_all += "MRCONEE MDCINT"
     if propint is not False:
-      subprocess.check_call("pam --mol=" + xyz_file + " --inp=" + input_file + " --get='MRCONEE MDCINT MDPROP' --silent --noarch", shell=True)
+       get_all += " MDPROP"
+    if get is not False:
+       get_all += " "+get
+    if not restart:
+        subprocess.check_call("pam --mol=" + xyz_file + " --inp=" + input_file + " --get='" + get_all + "' --silent --noarch", shell=True, cwd=molecule.data_directory)
     else:
-      subprocess.check_call("pam --mol=" + xyz_file + " --inp=" + input_file + " --get='MRCONEE MDCINT' --silent --noarch", shell=True)
+        subprocess.check_call("pam --mol=" + xyz_file + " --inp=" + input_file + " --get='" + get_all + "' --put='DFCOEF' --silent --noarch", shell=True, cwd=molecule.data_directory)
 
     # run dirac_openfermion_mointegral_export.x
     if fcidump:
