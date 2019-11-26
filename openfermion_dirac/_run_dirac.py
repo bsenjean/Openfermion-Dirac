@@ -64,8 +64,10 @@ def generate_dirac_input(molecule,
                         run_dft,
                         run_ccsd,
                         run_fci,
+                        openshell,
                         relativistic,
                         point_nucleus,
+                        uncontract,
                         speed_of_light,
                         active,
                         properties,
@@ -81,9 +83,15 @@ def generate_dirac_input(molecule,
         run_ccsd: Boolean to run CCSD calculation. (note that SCF and MP2
                   energies are done as well with CCSD)
         run_fci: Boolean to run FCI calculation.
+        openshell: Perform a Average-of-configuration open-shell Hartree-Fock.
+                   List of 3 values, 
+                   - the first one for the number of closed-shell electrons
+                   - the second one for the number of open-shell
+                   - the third is for the fractional occupation (#active electrons/#active spinor)
         relativistic: Boolean to specify relativistic calculation or not
-        point_nucleus : Boolean to specify the use of the nuclear model of point nucleus,
+        point_nucleus: Boolean to specify the use of the nuclear model of point nucleus,
                         instead of Gaussian charge distribution (default).
+        uncontract : Boolean to specify the use of uncontracted basis set
         speed_of_light: Real value for the speed of light (137 a.u.) in atomic unit,
                         to be changed if wanted in order to increase or decrease relativistic
                         effects.
@@ -148,6 +156,10 @@ def generate_dirac_input(molecule,
       f.write(".SCF\n")
       if run_ccsd:
        f.write(".RELCCSD\n")
+      if (openshell is not False):
+         f.write("*SCF\n")
+         f.write(".CLOSED SHELL\n"+openshell[0]+"\n")
+         f.write(".OPEN SHELL\n"+openshell[1]+"\n"+openshell[2]+"\n")
       if run_fci:
        f.write(".DIRRCI\n")
       f.write("**HAMILTONIAN\n")
@@ -165,10 +177,13 @@ def generate_dirac_input(molecule,
        f.write("**PROPERTY\n")
        for prop in properties:
         f.write("." + prop + "\n")
+      f.write("**INTEGRALS\n")
       if point_nucleus:
-       f.write("**INTEGRALS\n")
        f.write(".NUCMOD\n")
        f.write(" 1\n")
+      if uncontract:
+       f.write("*READIN\n")
+       f.write(".UNCONTRACT\n")
       if speed_of_light is not False:
        f.write("**GENERAL\n")
        f.write(".CVALUE\n")
@@ -280,9 +295,11 @@ def run_dirac(molecule,
              run_dft=False,
              run_ccsd=False,
              run_fci=False,
+             openshell=False,
              fcidump=False,
              relativistic=False,
              point_nucleus=False,
+             uncontract=False,
              speed_of_light=False,
              active=False,
              save=False,
@@ -350,8 +367,10 @@ def run_dirac(molecule,
                         run_dft,
                         run_ccsd,
                         run_fci,
+                        openshell,
                         relativistic,
                         point_nucleus,
+                        uncontract,
                         speed_of_light,
                         active,
                         properties,
