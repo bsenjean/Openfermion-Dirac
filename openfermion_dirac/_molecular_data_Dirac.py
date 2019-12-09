@@ -535,21 +535,40 @@ class MolecularData_Dirac(object):
                  if "&END" in line:
                    break
                listed_values = [[token for token in line.split()] for line in f.readlines()] 
-               for row in range(num_lines-start_reading):
-                 a_1 = int(listed_values[row][1])
-                 a_2 = int(listed_values[row][2])
-                 a_3 = int(listed_values[row][3])
-                 a_4 = int(listed_values[row][4])
-                 if a_4 == 0 and a_3 == 0:
-                   if a_2 == 0:
-                     if a_1 == 0:
-                       self.E_core = float(listed_values[row][0])
-                     else:
-                       self.spinor[a_1] = float(listed_values[row][0])
-                   else:
-                     self.one_body_int[a_1,a_2] = float(listed_values[row][0])
-                 else:
-                   self.two_body_int[a_1,a_2,a_3,a_4] = float(listed_values[row][0])
+               complex_int = False
+               if (len(listed_values[0]) == 6) : complex_int = True
+               if not complex_int:
+                  for row in range(num_lines-start_reading):
+                    a_1 = int(listed_values[row][1])
+                    a_2 = int(listed_values[row][2])
+                    a_3 = int(listed_values[row][3])
+                    a_4 = int(listed_values[row][4])
+                    if a_4 == 0 and a_3 == 0:
+                      if a_2 == 0:
+                        if a_1 == 0:
+                          self.E_core = float(listed_values[row][0])
+                        else:
+                          self.spinor[a_1] = float(listed_values[row][0])
+                      else:
+                        self.one_body_int[a_1,a_2] = float(listed_values[row][0])
+                    else:
+                      self.two_body_int[a_1,a_2,a_3,a_4] = float(listed_values[row][0])
+               if complex_int:
+                  for row in range(num_lines-start_reading):
+                    a_1 = int(listed_values[row][2])
+                    a_2 = int(listed_values[row][3])
+                    a_3 = int(listed_values[row][4])
+                    a_4 = int(listed_values[row][5])
+                    if a_4 == 0 and a_3 == 0:
+                      if a_2 == 0:
+                        if a_1 == 0:
+                          self.E_core = complex(float(listed_values[row][0]),float(listed_values[row][1]))
+                        else:
+                          self.spinor[a_1] = complex(float(listed_values[row][0]),float(listed_values[row][1]))
+                      else:
+                        self.one_body_int[a_1,a_2] = complex(float(listed_values[row][0]),float(listed_values[row][1]))
+                    else:
+                      self.two_body_int[a_1,a_2,a_3,a_4] = complex(float(listed_values[row][0]),float(listed_values[row][1]))
         else:
              raise FileNotFoundError('FCIDUMP not found, did you make a run_dirac calculation with set fcidump = True?')
         return self.E_core, self.spinor, self.one_body_int, self.two_body_int
@@ -690,9 +709,9 @@ class MolecularData_Dirac(object):
         E_core, spinor, one_body_integrals, two_body_integrals = self.get_integrals_FCIDUMP()
         n_qubits = len(spinor)
         # Initialize Hamiltonian coefficients.
-        one_body_coefficients = numpy.zeros((n_qubits, n_qubits))
+        one_body_coefficients = numpy.zeros((n_qubits, n_qubits),dtype=type(E_core))
         two_body_coefficients = numpy.zeros((n_qubits, n_qubits,
-                                             n_qubits, n_qubits))
+                                             n_qubits, n_qubits),dtype=type(E_core))
 
         if self.relativistic:
           for p in range(n_qubits):
