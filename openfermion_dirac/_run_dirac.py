@@ -240,7 +240,7 @@ def generate_dirac_input(molecule,
     return input_file, xyz_file
 
 def rename(molecule,fcidump,propint):
-    output_file_dirac = molecule.name + "_" + molecule.name + '.out'
+    output_file_dirac = molecule.filename + "_" + molecule.name + '.out'
     output_file = molecule.filename + '.out'
     if fcidump:
      os.rename("FCIDUMP", molecule.data_directory + "/" + "FCIDUMP_" + molecule.name)
@@ -394,10 +394,10 @@ def run_dirac(molecule,
 
     # run dirac_openfermion_mointegral_export.x
     if fcidump:
-      subprocess.check_call("dirac_openfermion_mointegral_export.x fcidump",shell=True)
+      subprocess.check_call("dirac_openfermion_mointegral_export.x fcidump",shell=True,cwd=molecule.data_directory)
     
     if propint is not False:
-      subprocess.check_call("dirac_openfermion_mointegral_export.x propint " + str(propint),shell=True)
+      subprocess.check_call("dirac_openfermion_mointegral_export.x propint " + str(propint),shell=True,cwd=molecule.data_directory)
 
     rename(molecule,fcidump,propint)
 
