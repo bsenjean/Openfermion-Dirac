@@ -243,16 +243,15 @@ def rename(molecule,fcidump,propint):
     output_file_dirac = molecule.filename + "_" + molecule.name + '.out'
     output_file = molecule.filename + '.out'
     if fcidump:
-     os.rename("FCIDUMP", molecule.data_directory + "/" + "FCIDUMP_" + molecule.name)
+     os.rename(molecule.data_directory + "/" + "FCIDUMP", molecule.data_directory + "/" + "FCIDUMP_" + molecule.name)
     if propint is not False:
-     os.rename("PROPINT", molecule.data_directory + "/" + "PROPINT_" + molecule.name)
+     os.rename(molecule.data_directory + "/" + "PROPINT", molecule.data_directory + "/" + "PROPINT_" + molecule.name)
     os.rename(output_file_dirac,output_file)
 
 def clean_up(molecule, fcidump, delete_input, delete_xyz, delete_output, delete_MRCONEE,
              delete_MDCINT, delete_MDPROP):
     input_file = molecule.filename + '.inp'
     xyz_file = molecule.filename + '.xyz'
-    output_file_dirac = molecule.name + "_" + molecule.name + '.out'
     output_file = molecule.filename + '.out'
     if delete_input:
       try:
