@@ -10,7 +10,7 @@
 
 INSTALL DIRAC: http://diracprogram.org/doku.php
 
-Note that one should modify the parameter variables in ```dirac_mointegral_export.F90``` before compiling,
+Note that one should modify the parameter variables in ```/path/to/dirac/utils/dirac_mointegral_export.F90``` before compiling,
 such that
 
 ```
