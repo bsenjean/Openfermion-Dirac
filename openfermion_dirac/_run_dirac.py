@@ -391,12 +391,12 @@ def run_dirac(molecule,
     else:
         subprocess.check_call("pam --mol=" + xyz_file + " --inp=" + input_file + " --get='" + get_all + "' --put='DFCOEF' --silent --noarch", shell=True, cwd=molecule.data_directory)
 
-    # run dirac_openfermion_mointegral_export.x
+    # run dirac_mointegral_export.x
     if fcidump:
-      subprocess.check_call("dirac_openfermion_mointegral_export.x fcidump",shell=True,cwd=molecule.data_directory)
+      subprocess.check_call("dirac_mointegral_export.x fcidump",shell=True,cwd=molecule.data_directory)
     
     if propint is not False:
-      subprocess.check_call("dirac_openfermion_mointegral_export.x propint " + str(propint),shell=True,cwd=molecule.data_directory)
+      subprocess.check_call("dirac_mointegral_export.x propint " + str(propint),shell=True,cwd=molecule.data_directory)
 
     rename(molecule,fcidump,propint)
 
