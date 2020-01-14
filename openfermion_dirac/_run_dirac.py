@@ -66,6 +66,7 @@ def generate_dirac_input(molecule,
                         run_fci,
                         openshell,
                         relativistic,
+                        NONREL,
                         point_nucleus,
                         uncontract,
                         speed_of_light,
@@ -89,6 +90,7 @@ def generate_dirac_input(molecule,
                    - the second one for the number of open-shell
                    - the third is for the fractional occupation (#active electrons/#active spinor)
         relativistic: Boolean to specify relativistic calculation or not
+        NONREL: Use NONREL Hamiltonian instead of Levy-Leblond.
         point_nucleus: Boolean to specify the use of the nuclear model of point nucleus,
                         instead of Gaussian charge distribution (default).
         uncontract : Boolean to specify the use of uncontracted basis set
@@ -164,7 +166,10 @@ def generate_dirac_input(molecule,
        f.write(".DIRRCI\n")
       f.write("**HAMILTONIAN\n")
       if not relativistic:
-       f.write(".LEVY-LEBLOND\n")
+       if NONREL:
+          f.write(".NONREL\n")
+       else:
+          f.write(".LEVY-LEBLOND\n")
       if run_dft is not False:
        f.write(".DFT\n")
        f.write(run_dft + "\n")
@@ -297,6 +302,7 @@ def run_dirac(molecule,
              openshell=False,
              fcidump=False,
              relativistic=False,
+             NONREL=False,
              point_nucleus=False,
              uncontract=False,
              speed_of_light=False,
@@ -327,6 +333,7 @@ def run_dirac(molecule,
                  Necessary to construct the molecular Hamiltonian
                  in OpenFermion.
         relativistic: Optional boolean to run relativistic calculation
+        NONREL: Use NONREL Hamiltonian instead of Levy-Leblond.
         point_nucleus : Boolean to specify the use of the nuclear model of point nucleus,
                         instead of Gaussian charge distribution (default).
         speed_of_light: Optional real to give another value to the speed of light
@@ -368,6 +375,7 @@ def run_dirac(molecule,
                         run_fci,
                         openshell,
                         relativistic,
+                        NONREL,
                         point_nucleus,
                         uncontract,
                         speed_of_light,

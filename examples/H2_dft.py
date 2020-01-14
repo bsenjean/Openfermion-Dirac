@@ -40,6 +40,8 @@ molecule = run_dirac(molecule,
                     delete_output=delete_output,
                     delete_MRCONEE=delete_MRCONEE,
                     delete_MDCINT=delete_MDCINT,
+                    NONREL=True,
+                    get="DFCOEF",
                     run_dft=run_dft)
 
 print('DFT energy of {} Hartree.'.format(molecule.get_energies()[0]))
