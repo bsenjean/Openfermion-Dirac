@@ -244,13 +244,15 @@ def generate_dirac_input(molecule,
 
     return input_file, xyz_file
 
-def rename(molecule,fcidump,propint):
+def rename(molecule,fcidump,propint,ccamp):
     output_file_dirac = molecule.filename + "_" + molecule.name + '.out'
     output_file = molecule.filename + '.out'
     if fcidump:
      os.rename(molecule.data_directory + "/" + "FCIDUMP", molecule.data_directory + "/" + "FCIDUMP_" + molecule.name)
     if propint is not False:
      os.rename(molecule.data_directory + "/" + "PROPINT", molecule.data_directory + "/" + "PROPINT_" + molecule.name)
+    if ccamp:
+     os.rename(molecule.data_directory + "/" + "CCAMP", molecule.data_directory + "/" + "CCAMP_" + molecule.name)
     os.rename(output_file_dirac,output_file)
 
 def clean_up(molecule, fcidump, delete_input, delete_xyz, delete_output, delete_MRCONEE,
@@ -301,6 +303,7 @@ def run_dirac(molecule,
              run_fci=False,
              openshell=False,
              fcidump=False,
+             ccamp=False,
              relativistic=False,
              NONREL=False,
              point_nucleus=False,
@@ -366,6 +369,10 @@ def run_dirac(molecule,
     """
     if run_fci and fcidump:
        raise InputError('Both run_fci and fcidump cannot be True. For now, run_fci should just be used to generate the Dirac-output.')
+    if ccamp and not relativistic:
+       raise InputError('Extraction of CC amplitudes only work for relativistic calculations for now.')
+    if ccamp and not run_ccsd:
+       raise InputError('Extraction of CC amplitudes only work if run_ccsd = True.')
 
     # Prepare input.
     input_file, xyz_file = generate_dirac_input(molecule,
@@ -390,8 +397,14 @@ def run_dirac(molecule,
     get_all = ""
     if fcidump:
        get_all += "MRCONEE MDCINT"
-    if propint is not False:
+    if propint is not False and fcidump:
        get_all += " MDPROP"
+    if propint is not False and not fcidump:
+       get_all += "MRCONEE MDPROP"
+    if ccamp is not False and (fcidump or (proprint is not False)):
+       get_all += " MCCRES"
+    if ccamp is not False and (not fcidump or not propint):
+       get_all += "MRCONEE MCCRES"
     if get is not False:
        get_all += " "+get
     if not restart:
@@ -406,7 +419,10 @@ def run_dirac(molecule,
     if propint is not False:
       subprocess.check_call("dirac_mointegral_export.x propint " + str(propint),shell=True,cwd=molecule.data_directory)
 
-    rename(molecule,fcidump,propint)
+    if ccamp is not False:
+      subprocess.check_call("dirac_mointegral_export.x ccamp",shell=True,cwd=molecule.data_directory)
+
+    rename(molecule,fcidump,propint,ccamp)
 
     if save:
      try:

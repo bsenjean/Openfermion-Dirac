@@ -4,13 +4,13 @@ from openfermion.utils import eigenspectrum
 import os
 
 # Set molecule parameters.
-basis = 'CC-pVDZ'
+basis = 'STO-3G'
 bond_length = 1.0
 multiplicity = 1
 charge = 0
 data_directory=os.getcwd()
 
-delete_input = True
+delete_input = False
 delete_xyz = True
 delete_output = False
 delete_MRCONEE = True

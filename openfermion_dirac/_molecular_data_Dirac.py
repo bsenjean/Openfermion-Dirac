@@ -228,6 +228,8 @@ class MolecularData_Dirac(object):
         mp2_energy: Energy from MP2 perturbation theory.
         ccsd_energy: Energy from coupled cluster singles + doubles.
         fci_energy: Energy from full configuration interaction
+        ccsd_single_amps: Numpy array holding single amplitudes
+        ccsd_double_amps: Numpy array holding double amplitudes
     """
     def __init__(self, geometry=None, basis=None, special_basis=None, multiplicity=None,
                  charge=0, description="", filename="", data_directory=None, relativistic=False,
@@ -350,6 +352,10 @@ class MolecularData_Dirac(object):
         self.two_body_coeff = None
         self.molecular_hamiltonian = None
 
+        # Coupled cluster amplitudes
+        self.ccsd_single_amps = None
+        self.ccsd_double_amps = None
+
     def save(self):
         """Method to save the class under a systematic name."""
         self.get_energies()
@@ -358,6 +364,7 @@ class MolecularData_Dirac(object):
         self.get_elecquadrupole()
         self.get_elecpolarizability()
         self.molecular_hamiltonian, self.one_body_coeff, self.two_body_coeff = self.get_molecular_hamiltonian()
+        self.ccsd_single_amps, self.ccsd_double_amps = self.get_ccamp()
         self.n_qubits = count_qubits(self.molecular_hamiltonian)
         self.n_orbitals = len(self.spinor)
         tmp_name = uuid.uuid4()
@@ -437,6 +444,12 @@ class MolecularData_Dirac(object):
             f.create_dataset("print_molecular_hamiltonian", data=(str(self.molecular_hamiltonian) if
                                                 self.molecular_hamiltonian is not None
                                                 else False))
+            f.create_dataset("ccsd_single_amps", data=(self.ccsd_single_amps if
+                                                self.ccsd_single_amps is not None
+                                                else False))
+            f.create_dataset("ccsd_double_amps", data=(self.ccsd_double_amps if
+                                                self.ccsd_double_amps is not None
+                                                else False))
             # Save attributes generated from MP2 calculation.
             f.create_dataset("mp2_energy",
                              data=(self.mp2_energy if
@@ -488,6 +501,8 @@ class MolecularData_Dirac(object):
             orbital_energies : energies of the spin orbitals
             one_body_integrals : One body integrals given by FCIDUMP in Dirac
             two_body_integrals : Two body integrals given by FCIDUMP in Dirac
+            ccsd_single_amps: Numpy array holding single amplitudes
+            ccsd_double_amps: Numpy array holding double amplitudes
             print_molecular_hamiltonian : print the molecular Hamiltonian
                                           as it should be in Openfermion.
                                           Cannot be used for operation !
@@ -571,6 +586,8 @@ class MolecularData_Dirac(object):
                       self.two_body_int[a_1,a_2,a_3,a_4] = complex(float(listed_values[row][0]),float(listed_values[row][1]))
         else:
              raise FileNotFoundError('FCIDUMP not found, did you make a run_dirac calculation with set fcidump = True?')
+        self.n_orbitals = len(self.spinor)
+        self.n_qubits = len(self.spinor)
         return self.E_core, self.spinor, self.one_body_int, self.two_body_int
 
     def get_propint(self):
@@ -594,6 +611,53 @@ class MolecularData_Dirac(object):
         else:
              raise FileNotFoundError('PROPINT not found, did you make a run_dirac calculation and set propint = "property/you/want/to/compute" ?')
         return self.propint_AObasis
+
+    def get_ccamps(self):
+        """
+        self.ccsd_single_amps : A 2-dimension array t[a,i] for CCSD single excitation amplitudes
+        where a are virtual indices and i are occupied indices.
+        self.ccsd_double_amps : A 4-dimension array t[a,i,b,j] for CCSD double excitation amplitudes
+        where a, b are virtual indices and i, j are occupied indices.
+        """
+        if os.path.exists(self.data_directory + "/" + "CCAMP_" + self.name):
+             with open(self.data_directory + "/" + "CCAMP_" + self.name) as f:
+               listed_values = [[token for token in line.split()] for line in f.readlines()]
+             occ_spinors = int(listed_values[0][0])
+             vir_spinors = int(listed_values[0][1])
+             dim_T1 = int(listed_values[0][2])
+             dim_T2 = int(listed_values[0][3])
+             nmo = occ_spinors + vir_spinors
+             self.ccsd_single_amps_tmp = numpy.zeros((nmo,nmo),dtype=complex)
+             self.ccsd_double_amps_tmp = numpy.zeros((nmo,nmo,nmo,nmo),dtype=complex)
+             self.ccsd_single_amps = numpy.zeros((nmo,nmo),dtype=complex)
+             self.ccsd_double_amps = numpy.zeros((nmo,nmo,nmo,nmo),dtype=complex)
+             ia = 0
+             ijab = 0
+             if self.relativistic:
+               for i in range(occ_spinors):
+                 for a in range(vir_spinors):
+                   self.ccsd_single_amps_tmp[i,occ_spinors+a] = complex(float(listed_values[1][ia]),float(listed_values[1][ia+1]))
+                   ia += 2
+               for i in range(occ_spinors):
+                 for j in range(i+1,occ_spinors):
+                    for a in range(vir_spinors):
+                      for b in range(a+1,vir_spinors):
+                         self.ccsd_double_amps_tmp[i,j,occ_spinors+a,occ_spinors+b] = complex(float(listed_values[2][ijab]),float(listed_values[2][ijab+1]))
+                         ijab += 2
+
+               # Now let's keep the same format as in OpenFermion-PySCF:
+               for i in range(nmo):
+                for a in range(nmo):
+                  self.ccsd_single_amps[a,i] = self.ccsd_single_amps_tmp[i,a]
+                  for j in range(i+1,nmo):
+                    for b in range(a+1,nmo):
+                      self.ccsd_double_amps[a,i,b,j] = 0.5*self.ccsd_double_amps_tmp[i,j,a,b]
+                      self.ccsd_double_amps[b,j,a,i] = 0.5*self.ccsd_double_amps_tmp[i,j,a,b]
+             else:
+               raise MissingCalculationError('Extraction of CC amplitudes only works for relativistic calculations right now.')
+        else:
+             raise FileNotFoundError('CCAMP not found, did you make a run_dirac calculation and set run_ccsd and ccamp to True ?')
+        return self.ccsd_single_amps,self.ccsd_double_amps
 
     def get_energies(self):
         self.hf_energy = None
