@@ -352,6 +352,9 @@ class MolecularData_Dirac(object):
         self.two_body_coeff = None
         self.molecular_hamiltonian = None
 
+        # property integrals
+        self.propint_AObasis = None
+
         # Coupled cluster amplitudes
         self.ccsd_single_amps = None
         self.ccsd_double_amps = None
@@ -364,9 +367,9 @@ class MolecularData_Dirac(object):
         self.get_elecquadrupole()
         self.get_elecpolarizability()
         self.molecular_hamiltonian, self.one_body_coeff, self.two_body_coeff = self.get_molecular_hamiltonian()
-        self.ccsd_single_amps, self.ccsd_double_amps = self.get_ccamp()
-        self.n_qubits = count_qubits(self.molecular_hamiltonian)
-        self.n_orbitals = len(self.spinor)
+        self.ccsd_single_amps, self.ccsd_double_amps = self.get_ccamps()
+        if self.molecular_hamiltonian is not None: self.n_qubits = count_qubits(self.molecular_hamiltonian)
+        if self.spinor is not None: self.n_orbitals = len(self.spinor)
         tmp_name = uuid.uuid4()
         with h5py.File("{}.hdf5".format(tmp_name), "w") as f:
             # Save geometry:
@@ -584,10 +587,10 @@ class MolecularData_Dirac(object):
                         self.one_body_int[a_1,a_2] = complex(float(listed_values[row][0]),float(listed_values[row][1]))
                     else:
                       self.two_body_int[a_1,a_2,a_3,a_4] = complex(float(listed_values[row][0]),float(listed_values[row][1]))
+             self.n_orbitals = len(self.spinor)
+             self.n_qubits = len(self.spinor)
         else:
-             raise FileNotFoundError('FCIDUMP not found, did you make a run_dirac calculation with set fcidump = True?')
-        self.n_orbitals = len(self.spinor)
-        self.n_qubits = len(self.spinor)
+             print('FCIDUMP not found, set fcidump = True if needed.')
         return self.E_core, self.spinor, self.one_body_int, self.two_body_int
 
     def get_propint(self):
@@ -609,7 +612,7 @@ class MolecularData_Dirac(object):
                  a_2 = int(listed_values[row][3])
                  self.propint_AObasis[a_1,a_2] = complex(float(listed_values[row][0]),float(listed_values[row][1]))
         else:
-             raise FileNotFoundError('PROPINT not found, did you make a run_dirac calculation and set propint = "property/you/want/to/compute" ?')
+             print('PROPINT not found, set propint = "property/you/want/to/compute" if needed.')
         return self.propint_AObasis
 
     def get_ccamps(self):
@@ -656,14 +659,10 @@ class MolecularData_Dirac(object):
              else:
                raise MissingCalculationError('Extraction of CC amplitudes only works for relativistic calculations right now.')
         else:
-             raise FileNotFoundError('CCAMP not found, did you make a run_dirac calculation and set run_ccsd and ccamp to True ?')
+             print('CCAMP not found, set run_ccsd and ccamp to True if needed.')
         return self.ccsd_single_amps,self.ccsd_double_amps
 
     def get_energies(self):
-        self.hf_energy = None
-        self.mp2_energy = None
-        self.ccsd_energy = None
-        self.fci_energy = None
         if os.path.exists(self.filename + '.out'):
            with open(self.filename + '.out', "r") as f:
              for line in f:
@@ -756,13 +755,9 @@ class MolecularData_Dirac(object):
         Note:
            OpenFermion requires all integrals, without accounting for permutation symmetry 
            or restricted cases.
-           Hence, I modified dirac_mointegral_export.F90 into dirac_openfermion_mointegral_export.F90 
-           to generate the FCIDUMP which write explicitly the
-           integrals even if they are equivalent by permutation symmetry. 
            The FCIDUMP of a relativistic calculation contains every orbitals needed.
            For the non relativistic case, we have to add the symmetries due to the restricted
-           calculation. To do so, I also had to add a subroutine in 
-           dirac_openfermion_mointegral_export.F90 to index the orbitals as I wanted.
+           calculation.
            Note that the integrals in Dirac and Openfermion are not sorted the same way. In Openfermion,
            they correspond to the h_{p,q,r,s} term, which is equal to < pq | sr > = ( ps | qr ),
            where <.|.> refers to the physicist's notation, and (.|.) to the chemist's one, used in Dirac.
@@ -771,61 +766,65 @@ class MolecularData_Dirac(object):
         """
         # Get active space integrals.
         E_core, spinor, one_body_integrals, two_body_integrals = self.get_integrals_FCIDUMP()
-        n_qubits = len(spinor)
-        # Initialize Hamiltonian coefficients.
-        one_body_coefficients = numpy.zeros((n_qubits, n_qubits),dtype=type(E_core))
-        two_body_coefficients = numpy.zeros((n_qubits, n_qubits,
-                                             n_qubits, n_qubits),dtype=type(E_core))
-
-        if self.relativistic:
-          for p in range(n_qubits):
-            for q in range(n_qubits):
-                if (p+1,q+1) in one_body_integrals: 
-                   one_body_coefficients[p,q] = one_body_integrals[p+1,q+1]
-                for r in range(n_qubits):
-                    for s in range(n_qubits):
-                        if (p+1,q+1,r+1,s+1) in two_body_integrals and self.relativistic is True:
-                           two_body_coefficients[p,r,s,q] = two_body_integrals[p+1,q+1,r+1,s+1] / 2.0
+        if E_core is not None:
+           n_qubits = len(spinor)
+           # Initialize Hamiltonian coefficients.
+           one_body_coefficients = numpy.zeros((n_qubits, n_qubits),dtype=type(E_core))
+           two_body_coefficients = numpy.zeros((n_qubits, n_qubits,
+                                                n_qubits, n_qubits),dtype=type(E_core))
+   
+           if self.relativistic:
+             for p in range(n_qubits):
+               for q in range(n_qubits):
+                   if (p+1,q+1) in one_body_integrals: 
+                      one_body_coefficients[p,q] = one_body_integrals[p+1,q+1]
+                   for r in range(n_qubits):
+                       for s in range(n_qubits):
+                           if (p+1,q+1,r+1,s+1) in two_body_integrals and self.relativistic is True:
+                              two_body_coefficients[p,r,s,q] = two_body_integrals[p+1,q+1,r+1,s+1] / 2.0
+           else:
+             for p in range(n_qubits):
+               for q in range(n_qubits):
+                   if (p+1,q+1) in one_body_integrals:
+                      one_body_coefficients[p,q] = one_body_integrals[p+1,q+1]
+                      one_body_coefficients[q,p] = one_body_integrals[p+1,q+1]
+   
+             #permutation symmetry
+             for p in range(n_qubits//2):
+               for q in range(n_qubits//2):
+                   for r in range(n_qubits//2):
+                       for s in range(n_qubits//2):
+                           if (2*p+1,2*q+1,2*r+1,2*s+1) in two_body_integrals:
+                              two_body_coefficients[2*p,2*r,2*s,2*q] = two_body_integrals[2*p+1,2*q+1,2*r+1,2*s+1] / 2.0
+                              two_body_coefficients[2*q,2*r,2*s,2*p] = two_body_integrals[2*p+1,2*q+1,2*r+1,2*s+1] / 2.0
+                              two_body_coefficients[2*p,2*s,2*r,2*q] = two_body_integrals[2*p+1,2*q+1,2*r+1,2*s+1] / 2.0
+                              two_body_coefficients[2*q,2*s,2*r,2*p] = two_body_integrals[2*p+1,2*q+1,2*r+1,2*s+1] / 2.0
+                              two_body_coefficients[2*r,2*p,2*q,2*s] = two_body_integrals[2*p+1,2*q+1,2*r+1,2*s+1] / 2.0
+                              two_body_coefficients[2*s,2*p,2*q,2*r] = two_body_integrals[2*p+1,2*q+1,2*r+1,2*s+1] / 2.0
+                              two_body_coefficients[2*r,2*q,2*p,2*s] = two_body_integrals[2*p+1,2*q+1,2*r+1,2*s+1] / 2.0
+                              two_body_coefficients[2*s,2*q,2*p,2*r] = two_body_integrals[2*p+1,2*q+1,2*r+1,2*s+1] / 2.0
+           # restricted calculation
+             for p in range(n_qubits//2):
+               for q in range(n_qubits//2):
+                   for r in range(n_qubits//2):
+                       for s in range(n_qubits//2):
+                           two_body_coefficients[2*p+1,2*q,2*r,2*s+1] = two_body_coefficients[2*p,2*q,2*r,2*s]
+                           two_body_coefficients[2*p,2*q+1,2*r+1,2*s] = two_body_coefficients[2*p,2*q,2*r,2*s]
+                           two_body_coefficients[2*p+1,2*q+1,2*r+1,2*s+1] = two_body_coefficients[2*p,2*q,2*r,2*s]
+   
+           # Truncate.
+           one_body_coefficients[
+               numpy.absolute(one_body_coefficients) < EQ_TOLERANCE] = 0.
+           two_body_coefficients[
+               numpy.absolute(two_body_coefficients) < EQ_TOLERANCE] = 0.
+   
+           # Cast to InteractionOperator class and return.
+           molecular_hamiltonian = InteractionOperator(
+               E_core, one_body_coefficients, two_body_coefficients)
         else:
-          for p in range(n_qubits):
-            for q in range(n_qubits):
-                if (p+1,q+1) in one_body_integrals:
-                   one_body_coefficients[p,q] = one_body_integrals[p+1,q+1]
-                   one_body_coefficients[q,p] = one_body_integrals[p+1,q+1]
-
-          #permutation symmetry
-          for p in range(n_qubits//2):
-            for q in range(n_qubits//2):
-                for r in range(n_qubits//2):
-                    for s in range(n_qubits//2):
-                        if (2*p+1,2*q+1,2*r+1,2*s+1) in two_body_integrals:
-                           two_body_coefficients[2*p,2*r,2*s,2*q] = two_body_integrals[2*p+1,2*q+1,2*r+1,2*s+1] / 2.0
-                           two_body_coefficients[2*q,2*r,2*s,2*p] = two_body_integrals[2*p+1,2*q+1,2*r+1,2*s+1] / 2.0
-                           two_body_coefficients[2*p,2*s,2*r,2*q] = two_body_integrals[2*p+1,2*q+1,2*r+1,2*s+1] / 2.0
-                           two_body_coefficients[2*q,2*s,2*r,2*p] = two_body_integrals[2*p+1,2*q+1,2*r+1,2*s+1] / 2.0
-                           two_body_coefficients[2*r,2*p,2*q,2*s] = two_body_integrals[2*p+1,2*q+1,2*r+1,2*s+1] / 2.0
-                           two_body_coefficients[2*s,2*p,2*q,2*r] = two_body_integrals[2*p+1,2*q+1,2*r+1,2*s+1] / 2.0
-                           two_body_coefficients[2*r,2*q,2*p,2*s] = two_body_integrals[2*p+1,2*q+1,2*r+1,2*s+1] / 2.0
-                           two_body_coefficients[2*s,2*q,2*p,2*r] = two_body_integrals[2*p+1,2*q+1,2*r+1,2*s+1] / 2.0
-        # restricted calculation
-          for p in range(n_qubits//2):
-            for q in range(n_qubits//2):
-                for r in range(n_qubits//2):
-                    for s in range(n_qubits//2):
-                        two_body_coefficients[2*p+1,2*q,2*r,2*s+1] = two_body_coefficients[2*p,2*q,2*r,2*s]
-                        two_body_coefficients[2*p,2*q+1,2*r+1,2*s] = two_body_coefficients[2*p,2*q,2*r,2*s]
-                        two_body_coefficients[2*p+1,2*q+1,2*r+1,2*s+1] = two_body_coefficients[2*p,2*q,2*r,2*s]
-
-        # Truncate.
-        one_body_coefficients[
-            numpy.absolute(one_body_coefficients) < EQ_TOLERANCE] = 0.
-        two_body_coefficients[
-            numpy.absolute(two_body_coefficients) < EQ_TOLERANCE] = 0.
-
-        # Cast to InteractionOperator class and return.
-        molecular_hamiltonian = InteractionOperator(
-            E_core, one_body_coefficients, two_body_coefficients)
-
+           molecular_hamiltonian = None 
+           one_body_coefficients = None
+           two_body_coefficients = None
         return molecular_hamiltonian, one_body_coefficients, two_body_coefficients
 
 
