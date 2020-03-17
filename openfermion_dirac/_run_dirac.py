@@ -97,17 +97,7 @@ def generate_dirac_input(molecule,
         speed_of_light: Real value for the speed of light (137 a.u.) in atomic unit,
                         to be changed if wanted in order to increase or decrease relativistic
                         effects.
-        active: A list of 3 real numbers select active orbitals.
-                first number : lowest energy
-                second number : highest energy
-                third number : minimum gap required between the neighbor energy
-                               of the lowest and highest energy set previously.
-                               If the gap is lower than this number, the lowest
-                               (or highest) energy is shifted down (or up) until
-                               the gap is larger to the third number.
-          or active can also be a string
-          (the first for the starting active orbital and the second for the last active orbital).
-          The program will check if the list has size two or three, depending on the input provided.
+        active: A list of active spatial orbitals
         properties: list of strings to ask for calculation of specific molecular properties
         operator: list of list of operators and their prefactor to be added in the Hamiltonian (like external electric field...)
         propint: Property integrals transformation 
@@ -124,12 +114,6 @@ def generate_dirac_input(molecule,
      f.write(molecule.filename + ' # anything can be in this line\n')
      f.write(geo_string)
 
-    # Check if the keywords are well defined
-    if active is False:
-       pass
-    elif not (isinstance(active, list) and (len(active) == 3)) and not isinstance(active, str):
-       raise ActiveOrbitalsError('keyword active should be a list of three real numbers or a string (see tutorial)')
- 
     if molecule.basis == "special" and molecule.special_basis is None:
        raise SpecialBasisError('special_basis should be specified')
     elif molecule.basis == "special" and len(molecule.special_basis) != 2:
@@ -206,10 +190,8 @@ def generate_dirac_input(molecule,
        f.write(" 4\n")
       f.write(".ACTIVE\n")
       if active is not False:
-       if isinstance(active,str):
-         f.write(active + "\n")
-       elif isinstance(active,list):
-         f.write("energy " + str(active[0]) + " " + str(active[1]) + " " + str(active[2]) + "\n")
+       format_string = "{},"*len(active) + "\n"
+       f.write(format_string.format(*active))
       else:
        f.write(" all\n")
       if propint is not False:
@@ -235,10 +217,15 @@ def generate_dirac_input(molecule,
        f.write(manual_option + "\n")
       f.write("*END OF INPUT\n")
       if run_fci:
-       if nelec%2==0:
-        f.write("\n &RASORB  NELEC=" + str(nelec) + ", NRAS1=" + str(int(nelec/2)) + "," + str(int(nelec/2)) + ", MAXH1=" + str(nelec) + ", MAXE3=" + str(nelec) + "  &END\n")
+       if active is not False:
+        norbs_active = len(active)
+        nelec_active = nelec - 2*(active[0]-1)
+        f.write("\n &RASORB  NELEC={0}, NRAS1=0,0, NRAS2={1},{1}, MAXH1=0, MAXE3=0  &END\n".format(nelec_active,norbs_active))
        else:
-        f.write("\n &RASORB  NELEC=" + str(nelec) + ", NRAS1=" + str(int(nelec//2+1)) + "," + str(int(nelec//2)) + ", MAXH1=" + str(nelec) + ", MAXE3=" + str(nelec) + "  &END\n")
+        if nelec%2==0:
+         f.write("\n &RASORB  NELEC={0}, MAXH1={0}, MAXE3={0} &END".format(nelec))#, NRAS1={1},{1}, MAXH1={0}, MAXE3={0} &END\n".format(nelec,nelec//2))
+        else:
+         f.write("\n &RASORB  NELEC={0}, NRAS1={1},{2}, MAXH1={0}, MAXE3={0} &END\n".format(nelec,nelec//2+1,nelec//2))
        f.write(" &CIROOT  NROOTS=1 &END\n")
        f.write(" &DIRECT  MAXITER=20 &END\n")
 
@@ -340,17 +327,7 @@ def run_dirac(molecule,
         point_nucleus : Boolean to specify the use of the nuclear model of point nucleus,
                         instead of Gaussian charge distribution (default).
         speed_of_light: Optional real to give another value to the speed of light
-        active: A list of 3 real numbers select active orbitals.
-                first number : lowest energy
-                second number : highest energy
-                third number : minimum gap required between the neighbor energy
-                               of the lowest and highest energy set previously.
-                               If the gap is lower than this number, the lowest
-                               (or highest) energy is shifted down (or up) until
-                               the gap is larger to the third number.
-          or active can also be a string
-          (the first for the starting active orbital and the second for the last active orbital).
-          The program will check if the list has size two or three, depending on the input provided.
+        active: A list of spatial active orbitals
         save: Boolean to save calculation in a hdf5 file.
         properties: list of strings to ask for calculation of specific molecular properties
         operator: list of list of operators and their prefactor to be added in the Hamiltonian (like external electric field...)
@@ -367,6 +344,7 @@ def run_dirac(molecule,
     Returns:
         molecule: The updated MolecularData object.
     """
+    if run_fci and (active is not False): print("run_fci and active keywords are not False. Note that this will run a CASCI and not a FCI.")
     if run_fci and fcidump:
        raise InputError('Both run_fci and fcidump cannot be True. For now, run_fci should just be used to generate the Dirac-output.')
     if ccamp and not relativistic:

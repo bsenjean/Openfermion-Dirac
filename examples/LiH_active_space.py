@@ -26,11 +26,7 @@ print()
 run_ccsd = True
 description = 'R' + str(bond_length) + '_ccsd'
 
-#        active: A list of 3 real numbers select active orbitals.
-#                first number : lowest energy
-#                second number : highest energy
-#                third number : minimum gap required between the lowest (highest)
-active = [-2.0,0.3,0.1]
+active = [2,3]
 description += '_active'
 
 molecule = MolecularData_Dirac(geometry=geometry,

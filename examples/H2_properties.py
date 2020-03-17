@@ -24,7 +24,6 @@ print('NONREL Dirac calculation')
 print('#'*40)
 print()
 point_nucleus = True
-active = [-10,10,1]
 run_ccsd=False
 if run_ccsd:
  description = 'R' + str(bond_length) + '_ccsd'
@@ -46,7 +45,6 @@ molecule = run_dirac(molecule,
                     point_nucleus=point_nucleus,
                     properties=properties,
                     save=save,
-                    active=active,
                     delete_input=delete_input,
                     delete_xyz=delete_xyz,
                     delete_output=delete_output,

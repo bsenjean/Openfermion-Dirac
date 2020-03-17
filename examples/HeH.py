@@ -51,7 +51,7 @@ print('MP2 energy of {} Hartree. (WRONG --> HeH+)'.format(molecule.get_energies(
 print('CCSD energy of {} Hartree. (WRONG --> HeH+)'.format(molecule.get_energies()[2]))
 print('Solving the Qubit Hamiltonian (Jordan-Wigner): \n {}'.format(evs))
 
-print("The FCI calculation doesn't work here...")
+#print("The FCI calculation doesn't work here...")
 #molecule = run_dirac(molecule,
 #                    point_nucleus=point_nucleus,
 #                    delete_input=delete_input,
@@ -60,3 +60,4 @@ print("The FCI calculation doesn't work here...")
 #                    delete_MRCONEE=delete_MRCONEE,
 #                    delete_MDCINT=delete_MDCINT,
 #                    run_fci=True)
+#print('FCI energy of {} Hartree.'.format(molecule_fci.get_energies()[3]))
