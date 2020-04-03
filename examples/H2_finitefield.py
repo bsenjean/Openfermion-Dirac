@@ -7,7 +7,6 @@ import os
 basis = 'special'
 special_basis = ["STO-3G","foo NOBASIS"]
 bond_length = 1.0
-multiplicity = 1
 charge = 0
 data_directory=os.getcwd()
 
@@ -35,7 +34,6 @@ description = 'R' + str(bond_length) + '_ccsd'
 molecule = MolecularData_Dirac(geometry=geometry,
                                basis=basis,
                                special_basis=special_basis,
-                               multiplicity=multiplicity,
                                charge=charge,
                                description=description,
                                data_directory=data_directory)

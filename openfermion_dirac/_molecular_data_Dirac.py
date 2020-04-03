@@ -96,7 +96,6 @@ periodic_polarization = [-1,
 
 def name_molecule(geometry,
                   basis,
-                  multiplicity,
                   charge,
                   relativistic,
                   symmetry,
@@ -109,7 +108,6 @@ def name_molecule(geometry,
             example is [('H', (0, 0, 0)), ('H', (0, 0, 0.7414))].
             Distances in angstrom. Use atomic symbols to specify atoms.
         basis: A string giving the basis set. An example is 'cc-pvtz'.
-        multiplicity: An integer giving the spin multiplicity.
         charge: An integer giving the total molecular charge.
         relativistic: A boolean which tells you if the calculation is
                       relativistic or not.
@@ -120,9 +118,6 @@ def name_molecule(geometry,
 
     Returns:
         name: A string giving the name of the instance.
-
-    Raises:
-        MoleculeNameError: If spin multiplicity is not valid.
     """
     if not isinstance(geometry, basestring):
         # Get sorted atom vector.
@@ -140,24 +135,6 @@ def name_molecule(geometry,
 
     # Add basis.
     name += '_{}'.format(basis)
-
-    # Add multiplicity.
-    multiplicity_dict = {1: 'singlet',
-                         2: 'doublet',
-                         3: 'triplet',
-                         4: 'quartet',
-                         5: 'quintet',
-                         6: 'sextet',
-                         7: 'septet',
-                         8: 'octet',
-                         9: 'nonet',
-                         10: 'dectet',
-                         11: 'undectet',
-                         12: 'duodectet'}
-    if (multiplicity not in multiplicity_dict):
-        raise MoleculeNameError('Invalid spin multiplicity provided.')
-    else:
-        name += '_{}'.format(multiplicity_dict[multiplicity])
 
     # Add charge.
     if charge > 0:
@@ -209,7 +186,6 @@ class MolecularData_Dirac(object):
             in angstrom. Use atomic symbols to specify atoms.
         basis: A string giving the basis set. An example is 'cc-pvtz'.
         charge: An integer giving the total molecular charge. Defaults to 0.
-        multiplicity: An integer giving the spin multiplicity.
         description: An optional string giving a description. As an example,
             for dimers a likely description is the bond length (e.g. 0.7414).
         name: A string giving a characteristic name for the instance.
@@ -231,7 +207,7 @@ class MolecularData_Dirac(object):
         ccsd_single_amps: Numpy array holding single amplitudes
         ccsd_double_amps: Numpy array holding double amplitudes
     """
-    def __init__(self, geometry=None, basis=None, special_basis=None, multiplicity=None,
+    def __init__(self, geometry=None, basis=None, special_basis=None,
                  charge=0, description="", filename="", data_directory=None, relativistic=False,
                  symmetry=True, speed_of_light=False):
         """Initialize molecular metadata which defines class.
@@ -249,8 +225,6 @@ class MolecularData_Dirac(object):
                 Only optional if loading from file.
             charge: An integer giving the total molecular charge. Defaults
                 to 0.  Only optional if loading from file.
-            multiplicity: An integer giving the spin multiplicity.  Only
-                optional if loading from file.
             description: A optional string giving a description. As an
                 example, for dimers a likely description is the bond length
                 (e.g. 0.7414).
@@ -265,8 +239,7 @@ class MolecularData_Dirac(object):
         """
         # Check appropriate data as been provided and autoload if requested.
         if ((geometry is None) or
-                (basis is None) or
-                (multiplicity is None)):
+                (basis is None)):
             if filename:
                 if filename[-5:] == '.hdf5':
                     self.filename = filename[:(len(filename) - 5)]
@@ -276,13 +249,12 @@ class MolecularData_Dirac(object):
                 self.init_lazy_properties()
                 return
             else:
-                raise ValueError("Geometry, basis, multiplicity must be"
+                raise ValueError("Geometry, basis must be"
                                  "specified when not loading from file.")
 
         # Metadata fields which must be provided.
         self.geometry = geometry
         self.basis = basis
-        self.multiplicity = multiplicity
         self.data_directory = data_directory
 
         # Metadata fields with default values.
@@ -296,7 +268,7 @@ class MolecularData_Dirac(object):
         self.special_basis = special_basis
 
         # Name molecule and get associated filename
-        self.name = name_molecule(geometry, basis, multiplicity,
+        self.name = name_molecule(geometry, basis,
                                   charge, relativistic, symmetry, speed_of_light, description)
         if filename:
             if filename[-5:] == '.hdf5':
@@ -387,8 +359,6 @@ class MolecularData_Dirac(object):
                                                      is not None else False))
             # Save basis:
             f.create_dataset("basis", data=numpy.string_(self.basis))
-            # Save multiplicity:
-            f.create_dataset("multiplicity", data=self.multiplicity)
             # Save charge:
             f.create_dataset("charge", data=self.charge)
             # Save description:
@@ -493,7 +463,6 @@ class MolecularData_Dirac(object):
             n_electrons : number of electrons
             charge
             basis
-            multiplicity
             n_orbitals : number of spin orbitals
             n_qubits : number of qubits
             hf_energy : Energy Hartree-Fock
@@ -530,14 +499,6 @@ class MolecularData_Dirac(object):
         except IOError:
             data = None
         return data
-
-    def get_n_alpha_electrons(self):
-        """Return number of alpha electrons."""
-        return int((self.n_electrons + (self.multiplicity - 1)) // 2)
-
-    def get_n_beta_electrons(self):
-        """Return number of beta electrons."""
-        return int((self.n_electrons - (self.multiplicity - 1)) // 2)
 
     def get_integrals_FCIDUMP(self):
         if os.path.exists(self.data_directory + "/" + "FCIDUMP_" + self.name):

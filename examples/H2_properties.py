@@ -6,7 +6,6 @@ import os
 # Set molecule parameters.
 basis = 'STO-3G'
 bond_length = 0.7414
-multiplicity = 1
 charge = 0
 data_directory=os.getcwd()
 
@@ -35,7 +34,6 @@ properties = ['MOLGRD','DIPOLE','QUADRUPOLE','EFG','POLARIZABILITY']
 
 molecule = MolecularData_Dirac(geometry=geometry,
                                basis=basis,
-                               multiplicity=multiplicity,
                                charge=charge,
                                description=description,
                                data_directory=data_directory)

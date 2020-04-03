@@ -6,7 +6,6 @@ import os
 # Set molecule parameters.
 basis = 'CC-pVDZ'
 bond_length = 1.0
-multiplicity = 1
 charge = 0
 data_directory=os.getcwd()
 
@@ -35,7 +34,6 @@ for point in range(n_points):
     geometry = [('He', (0., 0., 0.)), ('He', (0., 0., bond_length))]
     molecule = MolecularData_Dirac(geometry=geometry,
                                basis=basis,
-                               multiplicity=multiplicity,
                                charge=charge,
                                description=description,
                                data_directory=data_directory)

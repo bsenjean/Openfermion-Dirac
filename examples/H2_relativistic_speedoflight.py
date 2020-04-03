@@ -6,7 +6,6 @@ import os
 # Set molecule parameters.
 basis = 'STO-3G'
 bond_length = 1.0
-multiplicity = 1
 charge = 0
 data_directory=os.getcwd()
 
@@ -32,7 +31,6 @@ relativistic=True
 
 molecule = MolecularData_Dirac(geometry=geometry,
                                basis=basis,
-                               multiplicity=multiplicity,
                                charge=charge,
                                speed_of_light=speed_of_light,
                                description=description,

@@ -9,7 +9,6 @@ basis = 'CC-pVDZ'
 R = 1.5
 angle = 60
 angle_rad = angle*np.pi/180.0
-multiplicity = 1
 charge = 0
 data_directory=os.getcwd()
 
@@ -32,7 +31,6 @@ description = 'R' + str(R) + '_T' + str(angle) +  '_ccsd'
 
 molecule = MolecularData_Dirac(geometry=geometry,
                                basis=basis,
-                               multiplicity=multiplicity,
                                charge=charge,
                                description=description,
                                data_directory=data_directory)

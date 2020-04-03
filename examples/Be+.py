@@ -5,7 +5,6 @@ import os
 
 # Set molecule parameters.
 basis = 'STO-3G'
-multiplicity = 2
 charge = 1
 data_directory=os.getcwd()
 
@@ -28,7 +27,6 @@ description = 'ccsd'
 
 molecule = MolecularData_Dirac(geometry=geometry,
                                basis=basis,
-                               multiplicity=multiplicity,
                                charge=charge,
                                description=description,
                                data_directory=data_directory)
