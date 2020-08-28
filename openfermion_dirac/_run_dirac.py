@@ -67,6 +67,7 @@ def generate_dirac_input(molecule,
                         openshell,
                         relativistic,
                         NONREL,
+                        DOSSSS,
                         point_nucleus,
                         uncontract,
                         speed_of_light,
@@ -154,6 +155,9 @@ def generate_dirac_input(molecule,
           f.write(".NONREL\n")
        else:
           f.write(".LEVY-LEBLOND\n")
+      if relativistic:
+        if DOSSSS:
+          f.write(".DOSSSS\n")
       if run_dft is not False:
        f.write(".DFT\n")
        f.write(run_dft + "\n")
@@ -293,6 +297,7 @@ def run_dirac(molecule,
              ccamp=False,
              relativistic=False,
              NONREL=False,
+             DOSSSS=False,
              point_nucleus=False,
              uncontract=False,
              speed_of_light=False,
@@ -303,6 +308,7 @@ def run_dirac(molecule,
              propint=False,
              manual_option=False,
              get=False,
+             memory=False,
              restart=False,
              delete_input=False,
              delete_output=False,
@@ -361,6 +367,7 @@ def run_dirac(molecule,
                         openshell,
                         relativistic,
                         NONREL,
+                        DOSSSS,
                         point_nucleus,
                         uncontract,
                         speed_of_light,
@@ -385,10 +392,13 @@ def run_dirac(molecule,
        get_all += "MRCONEE MCCRES"
     if get is not False:
        get_all += " "+get
+    mb = ''
+    if memory is not False:
+     mb = "--mb="+str(memory)
     if not restart:
-        subprocess.check_call("pam --mol=" + xyz_file + " --inp=" + input_file + " --get='" + get_all + "' --silent --noarch", shell=True, cwd=molecule.data_directory)
+        subprocess.check_call("pam " + mb + " --mol=" + xyz_file + " --inp=" + input_file + " --get='" + get_all + "' --silent --noarch", shell=True, cwd=molecule.data_directory)
     else:
-        subprocess.check_call("pam --mol=" + xyz_file + " --inp=" + input_file + " --get='" + get_all + "' --put='DFCOEF' --silent --noarch", shell=True, cwd=molecule.data_directory)
+        subprocess.check_call("pam " + mb + " --mol=" + xyz_file + " --inp=" + input_file + " --get='" + get_all + "' --put='DFCOEF' --silent --noarch", shell=True, cwd=molecule.data_directory)
 
     # run dirac_mointegral_export.x
     if fcidump:
