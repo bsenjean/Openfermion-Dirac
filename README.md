@@ -39,7 +39,7 @@ In ```/path/to/Openfermion-Dirac/openfermion_dirac/_run_dirac.py``` change the f
 - Set your own path to ```pam``` (```pam``` is the run_script of the Dirac program), which is called in the subprocess,
 or set ```/path/to/dirac/build``` to your ```.bash_profile```.
 - Same for ```dirac_mointegral_export.x```.
-
+- I realized that the last release of DIRAC may not have the complete version of ```dirac_mointegral_export.x```. One might need to use ```dirac_openfermion_mointegral_export.x``` instead (which do not exist anymore in the developer version as it has been merged with ```dirac_mointegral_export.x```). To make everything working (like the calculation of property integrals), please change ```dirac_mointegral_export.x``` to ```dirac_openfermion_mointegral_export.x``` in ```/path/to/Openfermion-Dirac/openfermion_dirac/_run_dirac.py```.
 
 # Use
 
