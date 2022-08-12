@@ -1,10 +1,10 @@
 from openfermion_dirac import MolecularData_Dirac, run_dirac
 from openfermion.transforms import jordan_wigner
-from openfermion.utils import eigenspectrum
+from openfermion.linalg import eigenspectrum
 import os
 
 # Set molecule parameters.
-basis = 'CC-pVDZ'
+basis = 'cc-pVDZ'
 bond_length = 1.0
 charge = 0
 data_directory=os.getcwd()

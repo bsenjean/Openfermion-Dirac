@@ -1,6 +1,6 @@
 from openfermion_dirac import MolecularData_Dirac, run_dirac
 from openfermion.transforms import jordan_wigner, bravyi_kitaev, symmetry_conserving_bravyi_kitaev, get_fermion_operator
-from openfermion.utils import eigenspectrum
+from openfermion.linalg import eigenspectrum
 import os
 
 # Set molecule parameters.

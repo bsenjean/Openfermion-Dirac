@@ -1,11 +1,11 @@
 from openfermion_dirac import MolecularData_Dirac, run_dirac
 from openfermion.transforms import jordan_wigner
-from openfermion.utils import eigenspectrum
+from openfermion.linalg import eigenspectrum
 import numpy as np
 import os
 
 # Set molecule parameters.
-basis = 'CC-pVDZ'
+basis = 'cc-pVDZ'
 R = 1.5
 angle = 60
 angle_rad = angle*np.pi/180.0
